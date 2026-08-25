@@ -1,0 +1,5749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SIC · Ayudas Técnicas · Teletón</title>
+
+<style>
+:root{
+  --red:#dc161d;
+  --red-dark:#a90f15;
+  --cyan:#11bdb4;
+  --cyan-dark:#07958f;
+  --blue:#173b69;
+  --green:#2d963f;
+  --orange:#ef8100;
+  --purple:#6a1b9a;
+  --gray:#f3f3f3;
+  --border:#d0d0d0;
+}
+*{box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+html,body{margin:0;min-height:100%;background:#f5f5f5;color:#222;font-size:12px}
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+a{color:#176b9c;text-decoration:underline}
+
+/* =====================================================
+   CABECERA SIC
+===================================================== */
+.topbar{
+  min-height:42px;
+  background:#fff;
+  border-bottom:1px solid #ddd;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:5px 10px;
+  position:sticky;
+  top:0;
+  z-index:100
+}
+.logo{
+  color:var(--red);
+  font-weight:bold;
+  font-size:19px;
+  white-space:nowrap
+}
+.menu{position:relative}
+.menu>button{
+  border:0;
+  background:#fff;
+  padding:7px 10px
+}
+.menu>button:after{content:" ›"}
+.menu-list{
+  display:none;
+  position:absolute;
+  top:31px;
+  left:0;
+  width:260px;
+  background:#fff;
+  border:1px solid #bbb;
+  box-shadow:0 3px 9px rgba(0,0,0,.2);
+  z-index:200
+}
+.menu.open .menu-list{display:block}
+.menu-item{
+  padding:8px 12px;
+  border-bottom:1px solid #eee;
+  cursor:pointer
+}
+.menu-item:hover{background:#e8edf5}
+.menu-item.sub{padding-left:27px}
+.menu-item.reset{opacity:0.1;font-size:7px;padding:1px 8px}
+.menu-item.reset:hover{opacity:0.25}
+.wallboard{display:none;position:fixed;top:50px;right:10px;width:270px;background:#fff;border:1px solid #999;border-radius:3px;box-shadow:0 2px 6px rgba(0,0,0,.12);z-index:300;max-height:380px;overflow:auto;font-size:9px}
+.wallboard.show{display:block}
+.wallboard-head{padding:6px 8px;background:var(--red);color:#fff;font-weight:bold;font-size:10px;display:flex;justify-content:space-between}
+.wallboard-close{background:0;border:0;color:#fff;cursor:pointer;width:16px;padding:0}
+.wallboard-body{padding:6px}
+.wb-item{padding:4px;border-bottom:1px solid #f0f0f0;line-height:1.3}
+
+.search-wrap{
+  position:relative;
+  flex:1;
+  max-width:560px
+}
+.search-wrap input{
+  width:100%;
+  height:27px;
+  border:1px solid #bbb;
+  padding:4px 8px
+}
+.search-results{
+  display:none;
+  position:absolute;
+  top:29px;
+  left:0;
+  right:0;
+  max-height:275px;
+  overflow:auto;
+  background:#fff;
+  border:1px solid #3347a9;
+  z-index:220
+}
+.search-results.show{display:block}
+.search-head{
+  background:#3347a9;
+  color:#fff;
+  padding:4px 8px;
+  font-size:10px
+}
+.search-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:7px;
+  border-bottom:1px solid #eee
+}
+.search-row:hover{background:#fde9e9}
+.avatar{
+  width:30px;
+  height:30px;
+  line-height:30px;
+  text-align:center;
+  color:#fff;
+  background:#607d8b
+}
+.profile-select{width:200px;height:28px}
+.user-box{
+  min-width:125px;
+  text-align:right;
+  line-height:1.3;
+  font-size:10px
+}
+.result-count{
+  background:var(--red);
+  color:#fff;
+  padding:2px 7px;
+  border-radius:2px
+}
+
+/* =====================================================
+   CONTEXTO PACIENTE
+===================================================== */
+.patientbar{
+  display:none;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:3px;
+  background:#fff;
+  border-bottom:1px solid #ddd;
+  padding:5px 10px
+}
+.patientbar.show{display:flex}
+.patient-id{
+  background:var(--red);
+  color:#fff;
+  padding:4px 9px;
+  font-weight:bold
+}
+.patient-name,.patient-rut{
+  background:#25b6c9;
+  color:#fff;
+  padding:4px 9px;
+  font-weight:bold
+}
+.patient-icons{
+  display:flex;
+  gap:2px;
+  margin-left:5px
+}
+.patient-icons button{
+  width:25px;
+  height:23px;
+  border:0;
+  color:#fff;
+  background:var(--cyan)
+}
+.patient-icons button.at{
+  background:var(--red);
+  outline:1px solid var(--red-dark)
+}
+.patient-age{
+  margin-left:auto;
+  color:#666;
+  font-size:10px
+}
+
+/* =====================================================
+   PÁGINAS Y PANELES
+===================================================== */
+.page{display:none;padding:10px}
+.page.active{display:block}
+.panel{
+  margin-bottom:10px;
+  background:#fff;
+  border:1px solid var(--border)
+}
+.panel-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:7px 10px;
+  color:#fff;
+  background:var(--red);
+  font-weight:bold
+}
+.panel-body{padding:10px}
+.page-title{
+  margin:4px 0 8px;
+  font-size:18px;
+  font-weight:normal
+}
+.small{font-size:10px;color:#777}
+
+/* =====================================================
+   MENSAJES
+===================================================== */
+.message{
+  margin:7px 0;
+  padding:8px 10px;
+  border-left:4px solid
+}
+.message.info{background:#e8f2fb;border-color:#1967a8}
+.message.warning{background:#fff5dd;border-color:var(--orange)}
+.message.success{background:#e8f6eb;border-color:var(--green)}
+.message.error{background:#fde9e9;border-color:var(--red)}
+
+/* =====================================================
+   TOOLBAR, TABLAS Y ESTADOS
+===================================================== */
+.toolbar{
+  padding:5px 7px;
+  text-align:right;
+  background:#fafafa;
+  border-bottom:1px solid #ddd
+}
+.tool{
+  width:29px;
+  height:28px;
+  margin-left:3px;
+  border:0;
+  border-radius:3px;
+  color:#fff;
+  background:var(--red)
+}
+.tool:disabled{
+  color:#aaa;
+  background:#ddd;
+  cursor:not-allowed
+}
+.table-wrap{overflow:auto}
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff
+}
+th{
+  padding:5px;
+  text-align:left;
+  white-space:nowrap;
+  color:#fff;
+  background:var(--red);
+  font-size:10px
+}
+td{
+  padding:5px;
+  border-bottom:1px solid #e3e3e3;
+  vertical-align:middle;
+  font-size:11px
+}
+tbody tr:hover{background:#f6f6f6}
+tbody tr.selected{
+  background:#ffe1df;
+  box-shadow:inset 3px 0 var(--red)
+}
+.empty{
+  padding:22px;
+  text-align:center;
+  color:#888
+}
+.badge{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:2px;
+  color:#fff;
+  font-size:10px
+}
+.badge.red{background:var(--red)}
+.badge.blue{background:#1976b8}
+.badge.green{background:var(--green)}
+.badge.orange{background:var(--orange)}
+.badge.purple{background:var(--purple)}
+.badge.gray{background:#777}
+.badge.cyan{background:#008b8b}
+
+.mini{
+  margin-right:2px;
+  padding:3px 7px;
+  border:0;
+  border-radius:2px;
+  color:#fff;
+  font-size:10px
+}
+.mini.blue{background:var(--blue)}
+.mini.red-outline{
+  color:var(--red);
+  background:#fff;
+  border:1px solid var(--red)
+}
+.bell{
+  width:21px;
+  height:21px;
+  border:0;
+  border-radius:50%;
+  color:#fff
+}
+.bell.green{background:var(--green)}
+.bell.red{background:var(--red)}
+
+/* =====================================================
+   FORMULARIOS
+===================================================== */
+.grid{display:grid;gap:9px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.g5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:900px){
+  .g3,.g4,.g5{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+label{
+  display:block;
+  margin-bottom:2px;
+  color:#333;
+  font-size:10px
+}
+label.required:before{
+  content:"* ";
+  color:var(--red);
+  font-weight:bold
+}
+input,select,textarea{
+  width:100%;
+  padding:5px;
+  border:1px solid #aaa;
+  background:#fff
+}
+input[readonly],textarea[readonly],select:disabled,input:disabled{
+  color:#555;
+  background:#eee
+}
+fieldset{
+  margin:9px 0;
+  padding:10px;
+  border:1px solid #aaa
+}
+legend{
+  color:var(--red);
+  font-size:11px;
+  font-weight:bold
+}
+.patient-card{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:8px;
+  padding:6px 9px;
+  background:#e6f3fa;
+  border:1px solid #c9dfe9
+}
+.checkbox{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:5px 0;
+  font-size:11px
+}
+.checkbox input{width:auto}
+.form-actions{
+  display:flex;
+  justify-content:space-between;
+  margin-top:10px
+}
+.btn{
+  padding:7px 18px;
+  border:0;
+  border-radius:2px;
+  color:#fff
+}
+.btn.red{background:var(--red)}
+.btn.gray{background:#555}
+.btn.blue{background:var(--blue)}
+.btn.green{background:var(--green)}
+.btn:disabled{background:#bbb;cursor:not-allowed}
+
+.tabs{display:flex;flex-wrap:wrap}
+.tab-button{
+  flex:1;
+  min-width:130px;
+  padding:7px 5px;
+  border:1px solid #bbb;
+  border-bottom:1px solid var(--red);
+  color:#444;
+  background:#eee
+}
+.tab-button.active{
+  color:var(--red);
+  background:#fff;
+  border-color:var(--red);
+  border-bottom-color:#fff;
+  font-weight:bold
+}
+.tab-panel{
+  display:none;
+  min-height:115px;
+  padding:11px;
+  border:1px solid #bbb;
+  border-top:0
+}
+.tab-panel.active{display:block}
+.chip{
+  display:inline-block;
+  margin:2px;
+  padding:2px 8px;
+  border:1px solid #ccc;
+  border-radius:10px;
+  background:#eee;
+  font-size:10px
+}
+
+/* =====================================================
+   MODALES
+===================================================== */
+.overlay{
+  display:none;
+  position:fixed;
+  inset:0;
+  z-index:500;
+  align-items:flex-start;
+  justify-content:center;
+  overflow:auto;
+  padding:25px 10px;
+  background:rgba(0,0,0,.55)
+}
+.overlay.show{display:flex}
+.modal{
+  width:900px;
+  max-width:99%;
+  background:#fff;
+  box-shadow:0 4px 18px rgba(0,0,0,.35)
+}
+.modal.small{width:520px}
+.modal.large{width:1100px}
+.modal-head{
+  display:flex;
+  justify-content:space-between;
+  padding:7px 10px;
+  color:#fff;
+  background:var(--red);
+  font-weight:bold
+}
+.modal-close{cursor:pointer}
+.modal-body{
+  max-height:72vh;
+  overflow:auto;
+  padding:12px
+}
+.modal-foot{
+  padding:9px 12px;
+  text-align:right;
+  background:#fafafa;
+  border-top:1px solid #ddd
+}
+
+/* =====================================================
+   AGENDA
+===================================================== */
+.agenda-tag{
+  display:inline-block;
+  margin-right:4px;
+  padding:2px 5px;
+  color:#fff;
+  background:var(--cyan);
+  font-size:9px
+}
+.agenda-tag.delivery{background:var(--orange)}
+.clip{
+  width:24px;
+  height:22px;
+  border:0;
+  border-radius:2px;
+  color:#fff;
+  background:#47bfe8
+}
+.delivery-row{background:#d9524f!important}
+.delivery-row td{color:#fff}
+
+/* =====================================================
+   MANTENCIÓN
+===================================================== */
+.state-chip{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:10px;
+  font-size:10px;
+  font-weight:bold
+}
+.state-return{color:#ef6c00;background:#fff3e0;border:1px solid #ef6c00}
+.state-donated{color:#e65100;background:#fff3e0;border:1px solid #e65100}
+.state-low{color:#c62828;background:#fdeaea;border:1px solid #c62828}
+.state-recycle{color:#2e7d32;background:#e8f6eb;border:1px solid #2e7d32}
+.state-used{color:#1b5e20;background:#e8f6eb;border:1px solid #1b5e20}
+.subtext{display:block;color:#777;font-size:9px}
+
+/* =====================================================
+   CONTRATO / XML
+===================================================== */
+.contract{padding:22px;line-height:1.65}
+.signature{
+  margin:15px 0;
+  padding:14px;
+  text-align:center;
+  border:1px solid #ccc
+}
+.signature-line{
+  width:55%;
+  margin:27px auto 4px;
+  border-top:1px solid #333
+}
+.success{color:var(--green)}
+pre{
+  max-height:220px;
+  overflow:auto;
+  padding:8px;
+  white-space:pre-wrap;
+  background:#f5f5e9;
+  border:1px solid #ccc;
+  font:11px Consolas,monospace
+}
+/* =====================================================
+   INFORMES PROFESIONALES
+===================================================== */
+.report-shell{background:#f7f7f7;padding:14px}
+.report-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.report-header h2{margin:0;color:#173b69;font-size:18px}
+.report-header .small{margin-top:4px}
+.report-filters{background:#fff;border:1px solid #d5d5d5;padding:12px;margin-bottom:12px}
+.report-filter-grid{display:grid;grid-template-columns:repeat(4,minmax(150px,1fr));gap:9px}
+.report-filter-actions{display:flex;gap:6px;justify-content:flex-end;margin-top:9px;flex-wrap:wrap}
+.report-kpis{display:grid;grid-template-columns:repeat(5,minmax(120px,1fr));gap:8px;margin-bottom:12px}
+.report-kpi{background:#fff;border:1px solid #ddd;border-left:4px solid var(--red);padding:10px}
+.report-kpi b{display:block;font-size:22px;color:#173b69;margin-top:3px}
+.report-kpi span{font-size:9px;color:#777;text-transform:uppercase}
+.report-table{background:#fff;border:1px solid #ddd}
+.report-table table{min-width:1050px}
+.report-table th{position:sticky;top:0;z-index:2}
+.report-table td{font-size:10px}
+.report-toolbar{display:flex;justify-content:space-between;align-items:center;padding:8px;background:#fafafa;border-bottom:1px solid #ddd;gap:8px}
+.report-toolbar .count{font-size:10px;color:#666}
+.report-detail{color:#176b9c;text-decoration:underline;cursor:pointer;font-weight:bold}
+.report-empty{background:#fff;border:1px solid #ddd;padding:25px;text-align:center;color:#777}
+.report-section{background:#fff;border:1px solid #ddd;padding:12px;margin-bottom:10px}
+.report-section h3{margin:0 0 8px;color:#173b69;font-size:13px}
+.report-summary-grid{display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px}
+.report-summary{border:1px solid #ddd;padding:8px;background:#fafafa}
+.report-summary strong{display:block;color:#173b69;font-size:17px}
+@media(max-width:1100px){.report-filter-grid{grid-template-columns:repeat(2,minmax(150px,1fr))}.report-kpis{grid-template-columns:repeat(3,minmax(120px,1fr))}}
+@media(max-width:650px){.report-filter-grid,.report-kpis,.report-summary-grid{grid-template-columns:1fr}.report-header{display:block}}
+
+</style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     BARRA SUPERIOR
+===================================================== -->
+<header class="topbar">
+  <div class="logo">✚ Teletón</div>
+
+  <div class="menu" id="mainMenu">
+    <button type="button" onclick="toggleMenu(event)">Menú</button>
+    <div class="menu-list">
+      <div class="menu-item" onclick="showPage('home')">Muro Informativo</div>
+      <div class="menu-item" onclick="showPage('ayudas')">Ayudas Técnicas</div>
+      <div class="menu-item" onclick="showPage('escritorio')">Escritorio Profesional</div>
+      <div class="menu-item"><b>Mantenedores</b></div>
+      <div class="menu-item sub" onclick="showPage('admin')">Administrador Ayudas Técnicas</div>
+      <div class="menu-item sub" onclick="showPage('mantencion')">Mantención Ayudas Técnicas</div>
+      <div class="menu-item sub" onclick="showPage('bodega')">Bodega / FIN700</div>
+      <div class="menu-item sub" onclick="showPage('informes')">Informes</div>
+      <div class="menu-item reset" onclick="resetDB(event)">⊗</div>
+    </div>
+  </div>
+
+  <div class="search-wrap">
+    <input id="searchInput" placeholder="Buscar paciente por nombre, ficha o RUT..." autocomplete="off">
+    <div id="searchResults" class="search-results"></div>
+  </div>
+
+  <span id="resultCount" class="result-count">0</span>
+
+  <select id="perfil" class="profile-select">
+    <option value="MED">Médico tratante</option>
+    <option value="TO">Administrador TO</option>
+    <option value="KI">Administrador KI</option>
+    <option value="TI">Administrador TI</option>
+  </select>
+
+  <div id="userBox" class="user-box"></div>
+</header>
+
+<!-- =====================================================
+     CINTA PACIENTE
+===================================================== -->
+<div id="patientbar" class="patientbar">
+  <span id="patientId" class="patient-id"></span>
+  <span id="patientName" class="patient-name"></span>
+  <span id="patientRut" class="patient-rut"></span>
+
+  <div class="patient-icons">
+    <button>⟳</button>
+    <button>☰</button>
+    <button>👥</button>
+    <button>✚</button>
+    <button>📁</button>
+    <button>📄</button>
+    <button>🔗</button>
+    <button>▤</button>
+    <button>✎</button>
+    <button>$</button>
+    <button>?</button>
+    <button class="at" onclick="showPage('ayudas')">♿</button>
+  </div>
+
+  <span id="patientAge" class="patient-age"></span>
+</div>
+
+<div id="wallboard" class="wallboard">
+  <div class="wallboard-head">
+    📢 Comunicados
+    <button class="wallboard-close" onclick="toggleWallboard()">✕</button>
+  </div>
+  <div class="wallboard-body" id="wbody"></div>
+</div>
+
+<!-- =====================================================
+     HOME
+===================================================== -->
+<section id="home" class="page active">
+  <div class="panel">
+    <div class="panel-title">Muro Informativo · Módulo Ayudas Técnicas</div>
+    <div class="panel-body">
+      <p>
+        Módulo para indicación, evaluación, lista de espera, entrega,
+        contrato, devolución y mantención de ayudas técnicas.
+      </p>
+
+      <div class="message info">
+        Busque un paciente y seleccione su ficha. Las acciones se habilitan
+        según el perfil y el estado de la indicación.
+      </div>
+
+      <div class="message warning">
+        <b>Flujo:</b>
+        Indicación médica → Agendar evaluación → Escritorio Profesional →
+        clip celeste → Evaluación TO/KI → Evolución → Prestaciones →
+        Stock → Entrega → Revisión conforme → Prevalidación → Contrato.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     AYUDAS TÉCNICAS PACIENTE
+===================================================== -->
+<section id="ayudas" class="page">
+  <div class="panel">
+    <div class="panel-title">
+      Lista Indicaciones Ayudas Técnicas
+      <span id="patientListTitle"></span>
+    </div>
+
+    <div class="toolbar">
+      <button id="ptActivity" class="tool" title="Agregar actividad / Agendar">▣</button>
+      <button id="ptNew" class="tool" title="Nueva indicación médica">📝</button>
+      <button id="ptCancel" class="tool" title="Anular indicación">✖</button>
+      <button id="ptDelete" class="tool" title="Eliminar indicación (sólo médico, estado Indicada)">🗑</button>
+      <button id="ptView" class="tool" title="Ver indicación">👁</button>
+      <button id="ptCiclopit" class="tool" title="Ciclopit">♿</button>
+      <button id="ptHistory" class="tool" title="Historial">🕘</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Correlativo</th>
+            <th>Tipo Ayuda Técnica</th>
+            <th>Descripción</th>
+            <th>Id Solicitud</th>
+            <th>Fecha Indicación</th>
+            <th>Profesional</th>
+            <th>Evaluador</th>
+            <th>Fecha Evaluación</th>
+            <th>Estado</th>
+            <th>Fecha entrega</th>
+          </tr>
+        </thead>
+        <tbody id="indicationsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel-body small">
+      Seleccione una fila para habilitar las acciones.
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     ESCRITORIO PROFESIONAL
+===================================================== -->
+<section id="escritorio" class="page">
+  <div class="panel">
+    <div class="panel-title">Mi Escritorio · Agenda del profesional</div>
+
+    <div class="panel-body">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:700;color:#1a3a8f;font-size:14px">Sillas devueltas</div>
+          <div class="small">Consulta rápida de ayudas que quedaron <b>DISPONIBLE USADO</b> y pueden ser entregadas nuevamente.</div>
+        </div>
+        <button class="btn green" onclick="openReturnedAvailable()">♻️ Sillas devueltas / disponibles usadas</button>
+      </div>
+      <div class="grid g3">
+        <div>
+          <label>Fecha</label>
+          <input type="date" id="agendaDate">
+        </div>
+        <div>
+          <label>Vista</label>
+          <select id="agendaView">
+            <option>Todo</option>
+          </select>
+        </div>
+        <div style="align-self:end">
+          <button type="button" class="btn gray" onclick="renderAgenda()">
+            Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Agenda</th>
+            <th>Paciente</th>
+            <th>Diagnóstico / Clínica</th>
+            <th>Equipo</th>
+            <th>Asistencia</th>
+            <th>Prestación</th>
+          </tr>
+        </thead>
+        <tbody id="agendaBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel-body small">
+      El clip celeste de una evaluación cambia automáticamente el contexto
+      al perfil TO/KI correspondiente y abre el formulario de evaluación.
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     ADMINISTRADOR
+===================================================== -->
+<section id="admin" class="page">
+  <div class="panel">
+    <div class="panel-title">Administrador Ayudas Técnicas</div>
+
+    <div class="panel-body">
+      <div class="grid g5">
+        <div>
+          <label>Instituto</label>
+          <select id="adminInstitute"></select>
+        </div>
+        <div>
+          <label>Especialidad</label>
+          <select id="adminSpecialty">
+            <option>Todas</option>
+            <option>Fisiatría</option>
+            <option>Terapia Ocupacional</option>
+            <option>Kinesiología</option>
+          </select>
+        </div>
+        <div>
+          <label>Profesional</label>
+          <select id="adminProfessional"></select>
+        </div>
+        <div>
+          <label>Tipo ayuda técnica</label>
+          <select id="adminType">
+            <option>Todos</option>
+            <option>Silla de ruedas</option>
+            <option>Coche paseo</option>
+            <option>Carro andador</option>
+            <option>Bastón</option>
+          </select>
+        </div>
+        <div>
+          <label>Fecha desde</label>
+          <input type="date" id="adminFrom">
+        </div>
+      </div>
+
+      <div class="grid g5" style="margin-top:8px">
+        <div>
+          <label>Fecha hasta</label>
+          <input type="date" id="adminTo">
+        </div>
+        <div>
+          <label>Estado contrato</label>
+          <select id="adminContract">
+            <option>Todos</option>
+            <option>SOLICITADO</option>
+            <option>EMITIDO</option>
+            <option>ENTREGADO</option>
+          </select>
+        </div>
+        <div>
+          <label>Estado indicación</label>
+          <select id="adminState">
+            <option>Todos</option>
+            <option>Indicada</option>
+            <option>Agendada</option>
+            <option>Evaluada</option>
+            <option>Lista de Espera</option>
+            <option>Chequeo conforme</option>
+            <option>Finalizada</option>
+            <option>Suspendida</option>
+            <option>Anulada</option>
+          </select>
+        </div>
+        <div>
+          <label>Estado FIN700</label>
+          <select id="adminFin">
+            <option>Todos</option>
+            <option>SOLICITUD DE CONSUMO</option>
+            <option>SOLICITUD DE TRASPASO</option>
+            <option>SOLICITUD DE COMPRA</option>
+            <option>ENTREGADO</option>
+            <option>DEVUELTO</option>
+            <option>ANULADO</option>
+          </select>
+        </div>
+        <div style="align-self:end">
+          <button class="btn green" onclick="clearAdminFilters()">
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <button id="adRefresh" class="tool" title="Actualizar">⟳</button>
+      <button id="adActivity" class="tool" title="Agregar actividad">▣</button>
+      <button id="adPrevalidation" class="tool" title="Prevalidación">📋</button>
+      <button id="adContact" class="tool" title="Contactar paciente">📞</button>
+      <button id="adCancel" class="tool" title="Anular">✖</button>
+      <button id="adReturn" class="tool" title="Devolución">▤</button>
+      <button class="tool" disabled title="Ciclopit en desarrollo">♿</button>
+      <button id="adHistory" class="tool" title="Historial">🕘</button>
+      <button id="adExport" class="tool" title="Exportar">⬇</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Id. indicación</th>
+            <th>Instituto</th>
+            <th>Médico</th>
+            <th>Evaluador</th>
+            <th>Paciente</th>
+            <th>Tipo ayuda técnica</th>
+            <th>Correlativo FIN700</th>
+            <th>Fecha indicación</th>
+            <th>Estado indicación</th>
+            <th>Estado contrato</th>
+            <th>Estado FIN700</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="adminBody"></tbody>
+      </table>
+    </div>
+
+    <div class="panel-body small">
+      Doble clic sobre una fila abre el contexto del paciente en Ayudas Técnicas.
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     MANTENCIÓN
+===================================================== -->
+<section id="mantencion" class="page">
+  <div class="panel">
+    <div class="panel-title">
+      Mantención artículos
+      <span>Cesar Jiménez · IT 131 - SANTIAGO</span>
+    </div>
+
+    <div class="panel-body">
+      <div class="grid g3">
+        <div>
+          <label>ESTADO ARTÍCULO</label>
+          <select id="articleState">
+            <option>Todos</option>
+            <option>EN DEVOLUCIÓN</option>
+            <option>DONADO</option>
+            <option>PARA BAJA</option>
+            <option>PARA RECICLAJE</option>
+            <option>DISPONIBLE USADO</option>
+          </select>
+        </div>
+        <div>
+          <label>UBICACIÓN</label>
+          <select id="articleLocation">
+            <option>Todas</option>
+            <option>COMODATO TERAPIA</option>
+            <option>COMODATO KINESIOLOGÍA</option>
+            <option>CENTRO DE RECICLAJE / DONACIÓN</option>
+            <option>DONACIÓN</option>
+          </select>
+        </div>
+        <div>
+          <label>CÓDIGO</label>
+          <input id="articleCode" placeholder="Ej: EDSR0361-53178">
+        </div>
+      </div>
+
+      <div style="text-align:right;margin-top:8px">
+        <button class="btn blue" onclick="exportArticles()">Exportar a Excel</button>
+        <button class="btn gray" onclick="clearArticleFilters()">Limpiar filtros</button>
+        <button class="btn green" onclick="renderArticles()">Filtrar</button>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Código</th>
+            <th>Descripción</th>
+            <th>Estado</th>
+            <th>Ubicación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="articlesBody"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     BODEGA
+===================================================== -->
+<section id="bodega" class="page">
+  <div class="panel">
+    <div class="panel-title">Bodega / FIN700 · Stock</div>
+    <div class="panel-body">
+      <div class="message info">
+        La consulta de stock gobierna el flujo de consumo, lista de espera,
+        traspaso y compra.
+      </div>
+      <div class="message info" style="margin-top:7px">
+        <b>FIN700 es un sistema externo (ERP), no un módulo de este sistema.</b>
+        Cuando no existe stock local para una indicación, ésta queda en estado
+        <b>Lista de Espera</b> y este sistema <b>envía una solicitud de artículos</b>
+        (traspaso o compra) a FIN700 mediante <b>webservice</b>. FIN700 responde
+        por sistema despachando los artículos solicitados y esa respuesta abastece
+        el stock local, liberando las indicaciones en lista de espera.
+      </div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Código</th>
+          <th>Stock local</th>
+          <th>Stock central</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="stockBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Lista de Espera · Abastecimiento pendiente</div>
+    <div class="panel-body small">
+      Pacientes sin stock del artículo indicado. Cada uno tiene asociado un
+      <b>N° de solicitud FIN700</b> para la trazabilidad del artículo.
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Correlativo AT</th>
+          <th>Paciente</th>
+          <th>Artículo</th>
+          <th>N° FIN700</th>
+          <th>Tipo solicitud</th>
+          <th>Estado</th>
+          <th>Abastecimiento</th>
+        </tr>
+      </thead>
+      <tbody id="waitBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Solicitudes de artículos a FIN700</div>
+    <table>
+      <thead>
+        <tr>
+          <th>N° pedido</th>
+          <th>N° FIN700</th>
+          <th>Tipo</th>
+          <th>Producto</th>
+          <th>Correlativo AT</th>
+          <th>Fecha</th>
+          <th>Estado</th>
+          <th>Respuesta FIN700 (webservice)</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" style="background:#c62828">
+      Monitor de Integración WebService · ERP FIN700 (Sistema Externo)
+    </div>
+    <div class="panel-body">
+      <div class="message info">
+        <b>Comunicación WebService:</b> muestra las llamadas API REST enviadas al
+        ERP FIN700 (<i>Outbound</i>) y los callbacks de abastecimiento recibidos
+        (<i>Inbound</i>).
+      </div>
+      <button class="btn" style="margin-top:8px" onclick="simulateInbound()">
+        Simular Respuesta Inbound WebService (Abastecer Stock ERP)
+      </button>
+      <h4 style="margin:14px 0 6px">Traza de Transacciones WebService API</h4>
+      <div id="wsLog"></div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     INFORMES
+===================================================== -->
+<section id="informes" class="page">
+  <div class="page-container">
+    <div class="panel">
+      <div class="panel-title">📊 Informes y Reportes</div>
+      <div style="display:grid;grid-template-columns:1fr 3fr;gap:20px;padding:20px">
+        <div style="list-style:none;padding:0;border-right:1px solid #eee">
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('listaespera')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📋 Lista espera</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponibles')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📦 Artículos disponibles</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('porbodega')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📦 Artículos por bodega</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('anulaciones')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">❌ Anulaciones</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('historico')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📚 Histórico indicaciones</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponible')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">✓ Disponible</a></div>
+        </div>
+        <div id="reportContent" style="overflow-y:auto;max-height:600px;padding-right:10px">
+          <div style="color:#999;font-size:13px;padding:20px;text-align:center">Selecciona un informe para ver los datos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =====================================================
+     MODAL PRINCIPAL
+===================================================== -->
+<div id="mainOverlay" class="overlay">
+  <div id="mainModal" class="modal">
+    <div class="modal-head">
+      <span id="mainTitle"></span>
+      <span class="modal-close" onclick="closeMain()">✕</span>
+    </div>
+    <div id="mainBody" class="modal-body"></div>
+    <div id="mainFoot" class="modal-foot"></div>
+  </div>
+</div>
+
+<!-- =====================================================
+     MODAL SECUNDARIO
+===================================================== -->
+<div id="subOverlay" class="overlay" style="z-index:700">
+  <div id="subModal" class="modal small">
+    <div class="modal-head">
+      <span id="subTitle"></span>
+      <span class="modal-close" onclick="closeSub()">✕</span>
+    </div>
+    <div id="subBody" class="modal-body"></div>
+    <div id="subFoot" class="modal-foot"></div>
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   CATÁLOGOS
+================================================================ */
+const STORAGE_KEY="teleton-ayudas-tecnicas-final-v3";
+
+const INSTITUTES=[
+  "IT 131 - SANTIAGO",
+  "IT 51 - VALPARAISO",
+  "IT 41 - CONCEPCIÓN",
+  "IT 61 - ARICA",
+  "IT 71 - COQUIMBO"
+];
+
+const USERS={
+  MED:{name:"Diego Rocha",label:"Médico tratante",specialty:"Fisiatría"},
+  TO:{name:"Ximena López",label:"Administrador TO",specialty:"Terapia Ocupacional"},
+  KI:{name:"Karen Morales",label:"Administrador KI",specialty:"Kinesiología"},
+  TI:{name:"Cesar Jimenez",label:"Administrador TI",specialty:"Administración"}
+};
+
+const SPECIFICATIONS={
+  "Elem. de posicionamiento, transferencia":[
+    ["Subtipo",["TABLA DE TRANSFERENCIA","TECLES","OTROS"]]
+  ],
+  "Silla de ruedas":[
+    ["Subtipo",["ESTANDAR","NEUROLOGICA","RECLINABLE","ESPECIAL"]],
+    ["Tamaño/Talla",["Talla 30","Talla 36","Talla 40"]],
+    ["Tipo de rueda",["PU","INFLABLE","MACIZA","MIXTA"]],
+    ["Marco",["CORTO","LARGO","AJUSTABLE"]],
+    ["Configuración del marco",["PLEGABLE","RÍGIDO"]],
+    ["Apoyabrazos",["FIJOS","ABATIBLES","REMOVIBLES"]],
+    ["Reposapiés",["FIJOS","ABATIBLES","ELEVABLES"]]
+  ],
+  "Coche de paseo":[
+    ["Subtipo",["PASEO (447)","PARAGUA","PASEO (450)"]]
+  ],
+  "Elem. apoyo para marcha":[
+    ["Subtipo",["CHICO","GRANDE"]],
+    ["Tipo",["BASTON","MULETAS"]]
+  ],
+  "Carro andador":[
+    ["Subtipo",["ANTERIOR","APOYO ANTEBROQUIAL","POSTERIOR","ANDADOR CUATRO PATAS","AXILAR","CUATRO RUEDAS"]]
+  ],
+  "Elem. antiescaras":[
+    ["Tipo",["Colchón","Cojín","Almohada"]]
+  ],
+  "Elem. para la vida diaria y accesibilidad":[
+    ["Tipo",["Elevador","Adaptador","Ayuda Agarradera"]]
+  ],
+  "Elem. apoyo a la integración laboral y educativa":[
+    ["Tipo",["Ortesis","Prótesis","Adaptación"]]
+  ]
+};
+
+const PRODUCT_CODES={
+  "Elem. de posicionamiento, transferencia":"EDPT0001",
+  "Silla de ruedas":"EDSR0361",
+  "Coche de paseo":"EDCP0210",
+  "Elem. apoyo para marcha":"EDAP0333",
+  "Carro andador":"EDCA0442",
+  "Elem. antiescaras":"EDAE0555",
+  "Elem. para la vida diaria y accesibilidad":"EDVD0666",
+  "Elem. apoyo a la integración laboral y educativa":"EDIL0777"
+};
+
+/* ================================================================
+   DATOS INICIALES
+================================================================ */
+function seedDatabase(){
+  return {
+    patients:[
+      {
+        id:101020,
+        name:"Vicente Tomas Figueroa Puebla",
+        rut:"24930136-1",
+        birth:"2015-04-10",
+        institute:"IT 131 - SANTIAGO",
+        diagnosis:"Parálisis Cerebral",
+        functional:"Moderado",
+        sex:"Masculino",
+        phone:"Mamá: 9-30556151 / Abuela: 9-72699896",
+        address:"QUEBRADA HERRERA, SAN FELIPE",
+        active:true
+      },
+      {
+        id:121296,
+        name:"Saúl Álvarez Soriano",
+        rut:"20114558-3",
+        birth:"2012-08-02",
+        institute:"IT 131 - SANTIAGO",
+        diagnosis:"Mielomeningocele",
+        functional:"Severo o grave",
+        sex:"Masculino",
+        phone:"+56 9 8888 1111",
+        address:"AV. CENTRAL 123",
+        active:true
+      },
+      {
+        id:121212,
+        name:"Camila Bastías Ríos",
+        rut:"22345678-9",
+        birth:"2013-01-20",
+        institute:"IT 51 - VALPARAISO",
+        diagnosis:"Miopatía Degenerativa",
+        functional:"Severo o grave",
+        sex:"Femenino",
+        phone:"+56 9 7777 2222",
+        address:"LOS AROMOS 45",
+        active:true
+      },
+      {
+        id:94751,
+        name:"Cael Fernando Tarqui Márquez",
+        rut:"23111222-4",
+        birth:"2010-05-05",
+        institute:"IT 61 - ARICA",
+        diagnosis:"Espina Bífida",
+        functional:"Moderado",
+        sex:"Masculino",
+        phone:"+56 9 5555 3333",
+        address:"PASAJE 4 N°12",
+        active:true
+      },
+      {id:130001,name:"Josefa Antonia Muñoz Leiva",rut:"21456789-2",birth:"2011-03-14",institute:"IT 131 - SANTIAGO",diagnosis:"Distrofia Muscular de Duchenne",functional:"Severo o grave",sex:"Femenino",phone:"+56 9 6120 4471",address:"LAS ACACIAS 890, MAIPÚ",active:true},
+      {id:130002,name:"Matías Ignacio Sepúlveda Rojas",rut:"22987456-1",birth:"2014-07-22",institute:"IT 51 - VALPARAISO",diagnosis:"Parálisis Cerebral",functional:"Severo o grave",sex:"Masculino",phone:"Papá: 9-8123 4590",address:"SUBIDA CARVALLO 220, VALPARAÍSO",active:true},
+      {id:130003,name:"Antonella Paz Cárdenas Vera",rut:"23654987-K",birth:"2009-11-05",institute:"IT 141 - PUERTO MONTT",diagnosis:"Artrogriposis",functional:"Moderado",sex:"Femenino",phone:"+56 9 9044 1188",address:"LOS ALERCES 77, PUERTO MONTT",active:true},
+      {id:130004,name:"Benjamín Andrés Quilodrán Soto",rut:"24012345-6",birth:"2016-02-18",institute:"IT 121 - CONCEPCION",diagnosis:"Mielomeningocele",functional:"Severo o grave",sex:"Masculino",phone:"Mamá: 9-7712 6633",address:"PEDRO DE VALDIVIA 1450, CONCEPCIÓN",active:true},
+      {id:130005,name:"Isidora Belén Navarrete Pinto",rut:"20789456-3",birth:"2008-09-30",institute:"IT 61 - ARICA",diagnosis:"Lesión Medular",functional:"Severo o grave",sex:"Femenino",phone:"+56 9 5388 2077",address:"AV. SANTA MARÍA 305, ARICA",active:true},
+      {id:130006,name:"Lucas Emilio Ávalos Herrera",rut:"22111987-4",birth:"2013-06-11",institute:"IT 131 - SANTIAGO",diagnosis:"Amputación Miembro Inferior",functional:"Moderado",sex:"Masculino",phone:"+56 9 6677 3141",address:"GRAN AVENIDA 4520, SAN MIGUEL",active:true},
+      {id:130007,name:"Florencia Renata Ojeda Muñoz",rut:"23888555-7",birth:"2017-01-09",institute:"IT 111 - TALCA",diagnosis:"Síndrome de Down con hipotonía",functional:"Leve",sex:"Femenino",phone:"Abuela: 9-9021 4477",address:"1 SUR 1230, TALCA",active:true},
+      {id:130008,name:"Tomás Gabriel Riquelme Fuentes",rut:"21334455-8",birth:"2010-12-24",institute:"IT 121 - CONCEPCION",diagnosis:"Espina Bífida",functional:"Moderado",sex:"Masculino",phone:"+56 9 4455 9081",address:"LOS CARRERA 980, TALCAHUANO",active:true},
+      {id:130009,name:"Valentina Sofía Contreras Lagos",rut:"24556677-9",birth:"2015-08-16",institute:"IT 51 - VALPARAISO",diagnosis:"Parálisis Cerebral",functional:"Moderado",sex:"Femenino",phone:"+56 9 3322 7788",address:"CALLE LIMACHE 415, VIÑA DEL MAR",active:true},
+      {id:130010,name:"Agustín Nicolás Peralta Bravo",rut:"22660011-5",birth:"2012-04-03",institute:"IT 141 - PUERTO MONTT",diagnosis:"Miopatía Degenerativa",functional:"Severo o grave",sex:"Masculino",phone:"Mamá: 9-8890 1223",address:"RUTA 5 SUR KM 12, OSORNO",active:true},
+      {id:130011,name:"Emilia Constanza Zúñiga Toro",rut:"20998877-1",birth:"2007-10-27",institute:"IT 131 - SANTIAGO",diagnosis:"Lesión Medular Traumática",functional:"Severo o grave",sex:"Femenino",phone:"+56 9 7104 5566",address:"VICUÑA MACKENNA 2200, ÑUÑOA",active:true},
+      {id:130012,name:"Maximiliano José Farías Cortés",rut:"23445566-2",birth:"2014-05-19",institute:"IT 61 - ARICA",diagnosis:"Parálisis Braquial Obstétrica",functional:"Leve",sex:"Masculino",phone:"+56 9 6001 3399",address:"AZOLA 88, ARICA",active:true},
+      {id:130013,name:"Catalina Ignacia Salgado Reyes",rut:"21778899-0",birth:"2011-09-08",institute:"IT 111 - TALCA",diagnosis:"Artritis Idiopática Juvenil",functional:"Moderado",sex:"Femenino",phone:"Papá: 9-9433 1207",address:"4 NORTE 560, CURICÓ",active:true},
+      {id:130014,name:"Cristóbal Alonso Miranda Salas",rut:"24778811-3",birth:"2016-11-12",institute:"IT 121 - CONCEPCION",diagnosis:"Osteogénesis Imperfecta",functional:"Severo o grave",sex:"Masculino",phone:"+56 9 5566 8899",address:"COLÓN 145, CHIGUAYANTE",active:true},
+      {id:130015,name:"Martina Ayelén Huenchual Pino",rut:"22334477-6",birth:"2009-02-02",institute:"IT 141 - PUERTO MONTT",diagnosis:"Mielomeningocele",functional:"Moderado",sex:"Femenino",phone:"+56 9 8123 4477",address:"AV. AUSTRAL 1200, CASTRO",active:true}
+    ],
+
+    indications:[
+      {
+        id:71001,
+        patientId:101020,
+        origin:"IT 131 - SANTIAGO",
+        destination:"IT 131 - SANTIAGO",
+        doctor:"Diego Rocha",
+        date:"2025-11-12",
+        type:"Silla de ruedas",
+        definitive:"SI",
+        usage:"Permanente",
+        dependence:"Total",
+        priority:"Prioridad Normal",
+        specs:["Neurológica","Talla 36","Marco Largo","Mixtas"],
+        areas:["Movilidad","Autocuidado"],
+        spaces:["Hogar"],
+        impact:"Hogar",
+        observations:"Silla estándar para traslados.",
+        target:"TERAPIA OCUPACIONAL",
+        evaluator:"Ximena López",
+        evaluationDate:"2025-11-14",
+        evaluation:{
+          adequate:"Sí",
+          spaceType:"Hogar",
+          notes:"Evaluación realizada en domicilio.",
+          recommendations:"Acondicionamiento estándar.",
+          limitations:"",
+          barriers:["Sin barreras relevantes"]
+        },
+        state:"Finalizada",
+        requestId:"FIN703",
+        contractState:"EMITIDO",
+        finState:"ENTREGADO",
+        deliveryDate:"2025-11-15",
+        stockReady:true,
+        contacts:0,
+        condition:"Nuevo",
+        contract:{
+          start:"2025-11-15",
+          end:"2027-11-15",
+          receiver:"María Puebla",
+          receiverRut:"12345678-9",
+          address:"Quebrada Herrera",
+          region:"Valparaíso",
+          commune:"San Felipe",
+          relationship:"MADRE",
+          phone:"930556151"
+        }
+      },
+      {
+        id:71040,
+        patientId:121212,
+        origin:"IT 51 - VALPARAISO",
+        destination:"IT 51 - VALPARAISO",
+        doctor:"Diego Rocha",
+        date:"2025-11-12",
+        type:"Carro andador",
+        definitive:"SI",
+        usage:"Temporal",
+        dependence:"Parcial",
+        priority:"Urgente",
+        specs:["Posterior","Mediano","Con freno"],
+        areas:["Movilidad"],
+        spaces:["Hogar"],
+        impact:"Hogar",
+        observations:"Se solicita carro posterior por aumento de estatura.",
+        target:"KINESIOLOGÍA",
+        evaluator:"",
+        evaluationDate:"",
+        evaluation:null,
+        state:"Lista de Espera",
+        requestId:"FIN704",
+        fin700Order:"FIN700-700480",
+        contractState:"SOLICITADO",
+        finState:"SOLICITUD DE COMPRA",
+        deliveryDate:"",
+        stockReady:false,
+        contacts:1,
+        condition:"Usado en buenas condiciones",
+        contract:null
+      },
+      {
+        id:69558,
+        patientId:94751,
+        origin:"IT 61 - ARICA",
+        destination:"IT 61 - ARICA",
+        doctor:"Tapia Soto Claudia",
+        date:"2025-06-26",
+        type:"Silla de ruedas",
+        definitive:"SI",
+        usage:"Permanente",
+        dependence:"Total",
+        priority:"Prioridad Normal",
+        specs:["Estándar","Talla 40","Abatible Corto","Inflables"],
+        areas:["Movilidad"],
+        spaces:["Hogar"],
+        impact:"Hogar",
+        observations:"Silla estándar para traslados.",
+        target:"TERAPIA OCUPACIONAL",
+        evaluator:"Morales Vilca Karen",
+        evaluationDate:"2025-06-30",
+        evaluation:{
+          adequate:"Sí",
+          spaceType:"Hogar",
+          notes:"Evaluación realizada.",
+          recommendations:"Acondicionamiento estándar.",
+          limitations:"",
+          barriers:["Sin barreras relevantes"]
+        },
+        state:"Evaluada",
+        requestId:"FIN700",
+        contractState:"",
+        finState:"SOLICITUD DE CONSUMO",
+        deliveryDate:"",
+        stockReady:false,
+        contacts:0,
+        condition:"Nuevo",
+        contract:null
+      }
+    ],
+
+    appointments:[
+      {
+        id:1,
+        indicationId:69558,
+        patientId:94751,
+        date:new Date().toISOString().slice(0,10),
+        time:"09:30",
+        activity:"Evaluación ayuda técnica (30)",
+        area:"TERAPIA OCUPACIONAL",
+        kind:"evaluation",
+        notes:"",
+        state:"Agendada"
+      }
+    ],
+
+    articles:[
+      {
+        code:"EDSR0361-53178",
+        type:"Silla de ruedas",
+        description:"0361 - Silla ruedas reclinable 36'' marco largo inflable",
+        state:"EN DEVOLUCIÓN",
+        substate:"En proceso",
+        location:"COMODATO TERAPIA"
+      },
+      {
+        code:"EDSR0098-54466",
+        type:"Silla de ruedas",
+        description:"0098 - Silla ruedas estándar 36'' abatible marco largo PU",
+        state:"EN DEVOLUCIÓN",
+        substate:"En proceso",
+        location:"COMODATO TERAPIA"
+      },
+      {
+        code:"EDCA0442-40901",
+        type:"Carro andador",
+        description:"0442 - Andador posterior mediano aluminio",
+        state:"EN DEVOLUCIÓN",
+        substate:"En proceso",
+        location:"COMODATO KINESIOLOGÍA"
+      },
+      {
+        code:"EDSR0062-47794",
+        type:"Silla de ruedas",
+        description:"0062 - Silla ruedas estándar 36'' corto marco PU",
+        state:"DONADO",
+        substate:"Donación",
+        location:"DONACIÓN"
+      },
+      {
+        code:"EDSR0100-40001",
+        type:"Silla de ruedas",
+        description:"0100 - Silla ruedas estándar 16'' acero plegable",
+        state:"PARA BAJA",
+        substate:"En proceso",
+        location:"COMODATO TERAPIA"
+      },
+      {
+        code:"EDCA0442-46245",
+        type:"Carro andador",
+        description:"0442 - Carro andador posterior mediano",
+        state:"PARA RECICLAJE",
+        substate:"Centro de reciclaje / donación",
+        location:"CENTRO DE RECICLAJE / DONACIÓN"
+      },
+      {
+        code:"EDSR0121-50031",
+        type:"Silla de ruedas",
+        description:"0121 - Silla ruedas estándar guardabarros marco largo",
+        state:"DISPONIBLE USADO",
+        substate:"Comodato Terapia",
+        location:"COMODATO TERAPIA"
+      }
+    ],
+
+    articleHistory:{
+      "EDCA0442-40901":[
+        {
+          correlative:54449,
+          state:"DISPONIBLE",
+          date:"03/11/2022 14:28:44",
+          warehouse:"BODEGA COMODATO TERAPIA",
+          user:"lorena.canales"
+        },
+        {
+          correlative:54449,
+          state:"ASIGNADO",
+          date:"03/11/2022 14:36:13",
+          warehouse:"BODEGA COMODATO TERAPIA",
+          user:"lorena.canales"
+        },
+        {
+          correlative:54449,
+          state:"EN DEVOLUCIÓN",
+          date:"04/10/2024 12:45:56",
+          warehouse:"BODEGA COMODATO TERAPIA",
+          user:"cretamal"
+        }
+      ]
+    },
+
+    maintenance:[
+      {
+        date:"2025-08-01",
+        patientId:101020,
+        patient:"Vicente Figueroa Puebla",
+        model:"AVM (amarilla)",
+        part:"Rueda trasera",
+        description:"Cambio por desgaste",
+        technician:"Juan Pérez",
+        institute:"Teletón Santiago"
+      },
+      {
+        date:"2025-07-15",
+        patientId:101020,
+        patient:"Vicente Figueroa Puebla",
+        model:"AVM (amarilla)",
+        part:"Freno",
+        description:"Ajuste de freno",
+        technician:"María López",
+        institute:"Teletón Santiago"
+      },
+      {
+        date:"2025-06-10",
+        patientId:101020,
+        patient:"Vicente Figueroa Puebla",
+        model:"AVM (amarilla)",
+        part:"Asiento",
+        description:"Reemplazo por daño",
+        technician:"César Jiménez",
+        institute:"Teletón Santiago"
+      }
+    ],
+
+    stockLocal:{
+      "Silla de ruedas":2,
+      "Coche paseo":0,
+      "Carro andador":1,
+      "Bastón":0
+    },
+
+    stockCentral:{
+      "Silla de ruedas":5,
+      "Coche paseo":3,
+      "Carro andador":0,
+      "Bastón":0
+    },
+
+    orders:[
+      {
+        number:74972,
+        fin700:"FIN700-700480",
+        type:"COM",
+        product:"EDCA0442",
+        item:"Carro andador",
+        indicationId:71040,
+        date:"2025-11-12",
+        state:"Pendiente"
+      }
+    ],
+    wsLog:[
+      {
+        time:"09:14:02",
+        direction:"OUTBOUND_REQUEST",
+        endpoint:"/api/fin700/v1/solicitud-articulos",
+        payload:{
+          event:"SOLICITUD_COMPRA",
+          numeroFin700:"FIN700-700480",
+          correlativoSIC:71040,
+          articulo:"Carro andador",
+          cantidad:1,
+          estadoSIC:"Lista de Espera"
+        }
+      }
+    ],
+    nextIndication:71050,
+    nextAppointment:2,
+    nextOrder:74973,
+    nextFin700:700481
+  };
+}
+
+/* ================================================================
+   ESTADO GLOBAL
+================================================================ */
+let DB;
+
+try{
+  DB=JSON.parse(localStorage.getItem(STORAGE_KEY))||seedDatabase();
+}catch(error){
+  DB=seedDatabase();
+}
+
+// Normalización de inventario: toda silla en estado DISPONIBLE USADO
+// queda disponible para una futura asignación/entrega.
+(DB.articles||[]).forEach(article=>{
+  if(article.state==="DISPONIBLE USADO"){
+    article.availableForDelivery=true;
+    article.assignmentState=article.assignmentState||"DISPONIBLE PARA ENTREGA";
+    article.availableSince=article.availableSince||"";
+  }else if(article.availableForDelivery===undefined){
+    article.availableForDelivery=false;
+  }
+});
+
+let currentPatientId=101020;
+let selectedIndicationId=null;
+let selectedAdminId=null;
+let currentProfile="MED";
+let evolutionContext=null;
+let prestationContext=null;
+let cancelOrigin="patient";
+let selectedArticleCode=null;
+let messageCallback=null;
+
+/* ================================================================
+   UTILIDADES
+================================================================ */
+function persist(){
+  localStorage.setItem(STORAGE_KEY,JSON.stringify(DB));
+}
+
+function today(){
+  return new Date().toISOString().slice(0,10);
+}
+
+function formatDate(value){
+  if(!value)return "";
+  const parts=value.split("-");
+  return parts.length===3
+    ?parts[2]+"-"+parts[1]+"-"+parts[0]
+    :value;
+}
+
+function calculateAge(date){
+  const birth=new Date(date);
+  const now=new Date();
+
+  let years=now.getFullYear()-birth.getFullYear();
+  let months=now.getMonth()-birth.getMonth();
+  let days=now.getDate()-birth.getDate();
+
+  if(days<0){
+    months--;
+    days+=30;
+  }
+
+  if(months<0){
+    years--;
+    months+=12;
+  }
+
+  return years+" años, "+months+" meses, "+days+" días";
+}
+
+function getPatient(id){
+  return DB.patients.find(patient=>patient.id===Number(id));
+}
+
+function getIndication(id){
+  return DB.indications.find(indication=>indication.id===Number(id));
+}
+
+function getCurrentPatient(){
+  return getPatient(currentPatientId);
+}
+
+function getSelectedIndication(){
+  return getIndication(selectedIndicationId);
+}
+
+function getTarget(type){
+  return type==="Silla de ruedas"||type==="Coche paseo"
+    ?"TERAPIA OCUPACIONAL"
+    :"KINESIOLOGÍA";
+}
+
+function profileForTarget(target){
+  return target==="TERAPIA OCUPACIONAL"?"TO":"KI";
+}
+
+function stateBadge(state,type){
+  if(!state)return "";
+  
+  let color="gray";
+  
+  if(type==="indication"){
+    const indicationClasses={
+      "Indicada":"orange",
+      "Agendada":"blue",
+      "Evaluada":"blue",
+      "Lista de Espera":"orange",
+      "Chequeo conforme":"cyan",
+      "Finalizada":"green",
+      "Suspendida":"red",
+      "Anulada":"red",
+      "Reevaluación fisiatra":"red"
+    };
+    color=indicationClasses[state]||"gray";
+  }else if(type==="contract"){
+    const contractClasses={
+      "SOLICITADO":"orange",
+      "EMITIDO":"blue"
+    };
+    color=contractClasses[state]||"gray";
+  }else if(type==="fin"){
+    if(state.includes("ENTREGADO")||state.includes("DEVUELTO"))color="green";
+    else if(state.includes("SOLICITUD"))color="orange";
+    else if(state==="EMITIDO")color="blue";
+    else if(state==="ANULADO")color="red";
+  }else{
+    // Fallback para uso simple sin tipo
+    const classes={
+      "Indicada":"orange",
+      "Agendada":"blue",
+      "Evaluada":"blue",
+      "Lista de Espera":"orange",
+      "Chequeo conforme":"cyan",
+      "Finalizada":"green",
+      "Suspendida":"red",
+      "Anulada":"red"
+    };
+    color=classes[state]||"gray";
+  }
+
+  return '<span class="badge '+color+'">'+state+'</span>';
+}
+
+/* ================================================================
+   MENÚ SUPERIOR (click, no hover)
+================================================================ */
+function toggleMenu(event){
+  event.stopPropagation();
+  document.getElementById("mainMenu").classList.toggle("open");
+}
+
+function closeMenu(){
+  document.getElementById("mainMenu").classList.remove("open");
+}
+
+document.addEventListener("click",function(event){
+  const menu=document.getElementById("mainMenu");
+  if(menu&&!menu.contains(event.target))closeMenu();
+});
+
+/* ================================================================
+   ELIMINAR INDICACIÓN (perfil médico)
+================================================================ */
+function openDeleteIndication(){
+  const indication=getSelectedIndication();
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  if(currentProfile!=="MED"){
+    showMessage(
+      "Sólo el Médico tratante puede eliminar una indicación médica."
+    );
+    return;
+  }
+
+  if(indication.state!=="Indicada"){
+    showMessage(
+      "Sólo se puede eliminar una indicación en estado <b>Indicada</b>. "+
+      "La indicación "+indication.id+" está en estado <b>"+indication.state+
+      "</b> y ya avanzó en el flujo."
+    );
+    return;
+  }
+
+  openMain(
+    "Eliminar indicación médica",
+
+    '<div class="message info">'+
+      'Se eliminará definitivamente la indicación correlativo <b>'+
+      indication.id+'</b> ('+indication.type+'). '+
+      'Esta acción sólo está disponible para el médico tratante mientras '+
+      'la indicación se encuentra en estado Indicada.'+
+    '</div>'+
+
+    '<label class="required" style="margin-top:8px">Motivo</label>'+
+    '<select id="deleteReason">'+
+      '<option value="">Seleccione</option>'+
+      '<option>Indicación no corresponde al paciente</option>'+
+      '<option>Error en la ayuda técnica indicada</option>'+
+      '<option>Indicación duplicada</option>'+
+      '<option>Registrada por equivocación</option>'+
+    '</select>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="confirmDeleteIndication()">Eliminar</button>',
+
+    "small"
+  );
+}
+
+function confirmDeleteIndication(){
+  const reason=document.getElementById("deleteReason").value;
+
+  if(!reason){
+    showMessage("Debe indicar el motivo de la eliminación.");
+    return;
+  }
+
+  const indication=getSelectedIndication();
+
+  DB.indications=DB.indications.filter(item=>item.id!==indication.id);
+  DB.orders=DB.orders.filter(order=>order.indicationId!==indication.id);
+
+  selectedIndicationId=null;
+
+  persist();
+  closeMain();
+  renderIndications();
+  renderAdmin();
+
+  showMessage(
+    "Indicación "+indication.id+" eliminada. Motivo: "+reason+"."
+  );
+}
+
+function instituteOptions(selected){
+  return INSTITUTES.map(
+    institute=>'<option '+(institute===selected?"selected":"")+'>'+institute+'</option>'
+  ).join("");
+}
+
+function options(values,selected){
+  return values.map(
+    value=>'<option '+(value===selected?"selected":"")+'>'+value+'</option>'
+  ).join("");
+}
+
+function summaryValue(label,value){
+  return '<div><b>'+label+':</b> '+(value??"")+'</div>';
+}
+
+function formRead(label,value){
+  return '<div><label>'+label+'</label><input value="'+escapeAttribute(value||"")+'" readonly></div>';
+}
+
+function escapeAttribute(value){
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
+
+function checkboxHtml(name,value,label){
+  return '<label class="checkbox">'+
+    '<input type="checkbox" name="'+name+'" value="'+escapeAttribute(value)+'">'+
+    label+
+  '</label>';
+}
+
+function radioHtml(name,value,label,checked){
+  return '<label class="checkbox">'+
+    '<input type="radio" name="'+name+'" value="'+escapeAttribute(value)+'" '+(checked?"checked":"")+'>'+
+    label+
+  '</label>';
+}
+
+function specificationOptions(type,values){
+  const list=SPECIFICATIONS[type]||[];
+
+  return list.map((item,index)=>{
+    const selected=values&&values[index]?values[index]:"";
+
+    return '<div>'+
+      '<label class="required">'+item[0]+'</label>'+
+      '<select class="technical-spec">'+
+        item[1].map(
+          value=>'<option '+(value===selected?"selected":"")+'>'+value+'</option>'
+        ).join("")+
+      '</select>'+
+    '</div>';
+  }).join("");
+}
+
+function showPage(id){
+  document.querySelectorAll(".page").forEach(page=>page.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+
+  if(id==="ayudas")renderIndications();
+  if(id==="escritorio")renderAgenda();
+  if(id==="admin")renderAdmin();
+  if(id==="mantencion")renderArticles();
+  if(id==="bodega")renderStock();
+
+  closeMenu();
+  window.scrollTo(0,0);
+}
+
+function openMain(title,body,foot,size){
+  document.getElementById("mainTitle").textContent=title;
+  document.getElementById("mainBody").innerHTML=body;
+  document.getElementById("mainFoot").innerHTML=foot||"";
+  document.getElementById("mainModal").className="modal "+(size||"");
+  document.getElementById("mainOverlay").classList.add("show");
+}
+
+function closeMain(){
+  document.getElementById("mainOverlay").classList.remove("show");
+}
+
+function openSub(title,body,foot,size){
+  document.getElementById("subTitle").textContent=title;
+  document.getElementById("subBody").innerHTML=body;
+  document.getElementById("subFoot").innerHTML=foot||"";
+  document.getElementById("subModal").className="modal "+(size||"small");
+  document.getElementById("subOverlay").classList.add("show");
+}
+
+function closeSub(){
+  document.getElementById("subOverlay").classList.remove("show");
+}
+
+function showMessage(text,callback){
+  messageCallback=callback||null;
+
+  openSub(
+    "Sistema SIC · Ayudas Técnicas",
+    '<div class="message success">'+text+'</div>',
+    '<button class="btn blue" onclick="acceptMessage()">Aceptar</button>',
+    "small"
+  );
+}
+
+function acceptMessage(){
+  closeSub();
+
+  if(messageCallback){
+    const callback=messageCallback;
+    messageCallback=null;
+    callback();
+  }
+}
+
+function switchTab(button,panelId){
+  const fieldset=button.closest("fieldset");
+
+  fieldset.querySelectorAll(".tab-button")
+    .forEach(item=>item.classList.remove("active"));
+
+  fieldset.querySelectorAll(".tab-panel")
+    .forEach(item=>item.classList.remove("active"));
+
+  button.classList.add("active");
+  document.getElementById(panelId).classList.add("active");
+}
+
+function fillSelect(id,values,allLabel){
+  const select=document.getElementById(id);
+  select.innerHTML="";
+
+  if(allLabel){
+    select.add(new Option(allLabel,allLabel));
+  }
+
+  values.forEach(value=>select.add(new Option(value,value)));
+}
+
+/* ================================================================
+   PERFIL
+================================================================ */
+function updateProfile(){
+  currentProfile=document.getElementById("perfil").value;
+
+  const user=USERS[currentProfile];
+
+  document.getElementById("userBox").innerHTML=
+    user.name+"<br>IT 131 - SANTIAGO";
+
+  renderIndications();
+  renderAdmin();
+}
+
+document.getElementById("perfil").addEventListener("change",updateProfile);
+
+/* ================================================================
+   PACIENTE Y BÚSQUEDA
+================================================================ */
+function renderContext(){
+  const patient=getCurrentPatient();
+
+  if(!patient)return;
+
+  document.getElementById("patientbar").classList.add("show");
+  document.getElementById("patientId").textContent=patient.id;
+  document.getElementById("patientName").textContent=patient.name;
+  document.getElementById("patientRut").textContent=patient.rut;
+  document.getElementById("patientAge").textContent=
+    "Edad Actual: "+calculateAge(patient.birth);
+}
+
+function searchPatients(){
+  const query=document.getElementById("searchInput")
+    .value.trim().toLowerCase();
+
+  const results=document.getElementById("searchResults");
+
+  if(!query){
+    results.classList.remove("show");
+    document.getElementById("resultCount").textContent="0";
+    return;
+  }
+
+  const list=DB.patients.filter(patient=>
+    patient.name.toLowerCase().includes(query)||
+    String(patient.id).includes(query)||
+    patient.rut.toLowerCase().includes(query)
+  );
+
+  document.getElementById("resultCount").textContent=list.length;
+
+  results.innerHTML=
+    '<div class="search-head">FOTO · PACIENTE</div>'+
+    (
+      list.length
+      ?list.map(patient=>
+        '<div class="search-row">'+
+          '<div class="avatar">👤</div>'+
+          '<div style="flex:1">'+
+            '<span class="badge red">'+patient.id+'</span> '+
+            '<span class="badge blue">'+(patient.active?"ACTIVO":"INACTIVO")+'</span>'+
+            '<br><b>'+patient.name+'</b>'+
+            '<div class="small">RUT: '+patient.rut+' · '+patient.institute+'</div>'+
+          '</div>'+
+          '<button onclick="selectPatient('+patient.id+')">Mostrar</button>'+
+        '</div>'
+      ).join("")
+      :'<div class="search-row">Sin resultados</div>'
+    );
+
+  results.classList.add("show");
+}
+
+document.getElementById("searchInput")
+  .addEventListener("input",searchPatients);
+
+function selectPatient(id){
+  currentPatientId=Number(id);
+  selectedIndicationId=null;
+  selectedAdminId=null;
+
+  const patient=getCurrentPatient();
+
+  document.getElementById("searchInput").value=patient.name;
+  document.getElementById("searchResults").classList.remove("show");
+
+  renderContext();
+  showPage("ayudas");
+}
+
+/* ================================================================
+   INDICACIONES DEL PACIENTE
+================================================================ */
+function renderIndications(){
+  const patient=getCurrentPatient();
+
+  if(!patient)return;
+
+  document.getElementById("patientListTitle").textContent=
+    patient.id+" - "+patient.name;
+
+  const list=DB.indications.filter(
+    indication=>indication.patientId===patient.id
+  );
+
+  document.getElementById("indicationsBody").innerHTML=
+    list.length
+    ?list.map(indication=>
+      '<tr class="'+(selectedIndicationId===indication.id?"selected":"")+'" '+
+      'onclick="selectIndication('+indication.id+')">'+
+        '<td>'+indication.id+'</td>'+
+        '<td>'+indication.type+'</td>'+
+        '<td>'+indication.specs.join(", ")+'</td>'+
+        '<td>'+indication.requestId+'</td>'+
+        '<td>'+formatDate(indication.date)+'</td>'+
+        '<td>'+indication.doctor+'</td>'+
+        '<td>'+(indication.evaluator||"Sin evaluador")+'</td>'+
+        '<td>'+formatDate(indication.evaluationDate)+'</td>'+
+        '<td>'+stateBadge(indication.state)+'</td>'+
+        '<td>'+formatDate(indication.deliveryDate)+'</td>'+
+      '</tr>'
+    ).join("")
+    :'<tr><td colspan="10" class="empty">Sin indicaciones registradas.</td></tr>';
+
+  updatePatientToolbar();
+}
+
+function selectIndication(id){
+  selectedIndicationId=Number(id);
+  renderIndications();
+}
+
+function updatePatientToolbar(){
+  const indication=getSelectedIndication();
+
+  const active=indication&&
+    !["Anulada","Suspendida","Finalizada"].includes(indication.state);
+
+  document.getElementById("ptNew").disabled=
+    currentProfile!=="MED";
+
+  document.getElementById("ptView").disabled=
+    !indication;
+
+  document.getElementById("ptCancel").disabled=
+    !(indication&&active&&["MED","TI"].includes(currentProfile));
+
+  /* El médico tratante puede eliminar su indicación sólo mientras
+     está en estado "Indicada" (no evaluada, no finalizada). */
+  document.getElementById("ptDelete").disabled=
+    !(indication&&currentProfile==="MED"&&indication.state==="Indicada");
+
+  document.getElementById("ptActivity").disabled=
+    !(indication&&active&&["TI","TO","KI"].includes(currentProfile));
+
+  document.getElementById("ptCiclopit").disabled=
+    !getCurrentPatient();
+
+  document.getElementById("ptHistory").disabled=
+    !getCurrentPatient();
+}
+
+document.getElementById("ptNew")
+  .addEventListener("click",openIndication);
+
+document.getElementById("ptView")
+  .addEventListener("click",openViewIndication);
+
+document.getElementById("ptCancel")
+  .addEventListener("click",()=>openCancel("patient"));
+
+document.getElementById("ptDelete")
+  .addEventListener("click",openDeleteIndication);
+
+document.getElementById("ptActivity")
+  .addEventListener("click",()=>openActivity());
+
+document.getElementById("ptCiclopit")
+  .addEventListener("click",openCiclopit);
+
+document.getElementById("ptHistory")
+  .addEventListener("click",openHistory);
+
+/* ================================================================
+   INDICACIÓN MÉDICA
+================================================================ */
+function openIndication(){
+  if(currentProfile!=="MED"){
+    showMessage(
+      "La indicación médica sólo puede ser registrada por el Médico tratante."
+    );
+    return;
+  }
+
+  const patient=getCurrentPatient();
+
+  const body=
+    '<div class="patient-card">'+
+      '<span>👤 <b>'+patient.id+' - '+patient.name+'</b></span>'+
+      '<span>Edad Actual: '+calculateAge(patient.birth)+'</span>'+
+    '</div>'+
+
+    '<fieldset>'+
+      '<legend>Información de la Indicación Médica</legend>'+
+
+      '<div class="grid g4">'+
+        '<div>'+
+          '<label>Instituto Origen</label>'+
+          '<select id="indOrigin">'+instituteOptions(patient.institute)+'</select>'+
+        '</div>'+
+        '<div>'+
+          '<label>Instituto Destino</label>'+
+          '<select id="indDestination">'+instituteOptions(patient.institute)+'</select>'+
+        '</div>'+
+        '<div>'+
+          '<label>Especialidad</label>'+
+          '<input value="Fisiatría" readonly>'+
+        '</div>'+
+        '<div>'+
+          '<label>Profesional responsable</label>'+
+          '<input value="'+USERS.MED.name+'" readonly>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="grid g4" style="margin-top:8px">'+
+        '<div>'+
+          '<label class="required">Ayuda Técnica</label>'+
+          '<select id="indType" onchange="renderIndicationSpecs();renderIndicationTarget();toggleUsedChairOption()">'+
+            '<option>Elem. de posicionamiento, transferencia</option>'+
+            '<option>Silla de ruedas</option>'+
+            '<option>Coche de paseo</option>'+
+            '<option>Elem. apoyo para marcha</option>'+
+            '<option>Carro andador</option>'+
+            '<option>Elem. antiescaras</option>'+
+            '<option>Elem. para la vida diaria y accesibilidad</option>'+
+            '<option>Elem. apoyo a la integración laboral y educativa</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Período de uso</label>'+
+          '<select id="indUsage" onchange="toggleUsedChairOption()">'+
+            '<option>Permanente</option>'+
+            '<option>Temporal</option>'+
+            '<option>Por temporada</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Nivel de dependencia</label>'+
+          '<select id="indDependence">'+
+            '<option>Total</option>'+
+            '<option>Parcial</option>'+
+            '<option>Leve</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Prioridad de entrega</label>'+
+          '<select id="indPriority">'+
+            '<option>Prioridad Normal</option>'+
+            '<option>Urgente</option>'+
+            '<option>Electiva</option>'+
+          '</select>'+
+        '</div>'+
+      '</div>'+
+
+      '<div class="grid g2" style="margin-top:8px">'+
+        '<div>'+
+          '<label class="required">Fecha de indicación</label>'+
+          '<input type="date" id="indDate" value="'+today()+'">'+
+        '</div>'+
+        '<div>'+
+          '<label>Indicación Definitiva</label>'+
+          '<label class="checkbox" style="display:inline-flex;margin-right:16px">'+
+            '<input type="radio" name="indDef" value="SI" checked>SI'+
+          '</label>'+
+          '<label class="checkbox" style="display:inline-flex">'+
+            '<input type="radio" name="indDef" value="NO">NO'+
+          '</label>'+
+        '</div>'+
+      '</div>'+
+      '<div id="usedChairOption" style="display:none;margin-top:10px"></div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Especificaciones Técnicas</legend>'+
+      '<div class="grid g4" id="indSpecs"></div>'+
+      '<div id="indTarget" class="msgInfo"></div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Áreas a beneficiar con la ayuda técnica</legend>'+
+
+      '<div class="tabs">'+
+        '<button class="tab-button active" onclick="switchTab(this,\'benefitActivity\')">'+
+          'Mejorar la actividad'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'benefitParticipation\')">'+
+          'Mejorar participación'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'benefitCaregiver\')">'+
+          'Aliviar carga del cuidador'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'benefitNotes\')">'+
+          'Observaciones'+
+        '</button>'+
+      '</div>'+
+
+      '<div id="benefitActivity" class="tab-panel active">'+
+        checkboxHtml("indArea","Movilidad","Movilidad")+
+        checkboxHtml("indArea","Autocuidado","Autocuidado")+
+        checkboxHtml("indArea","Vida Doméstica","Vida Doméstica")+
+      '</div>'+
+
+      '<div id="benefitParticipation" class="tab-panel">'+
+        '<div class="grid g3">'+
+          '<div>'+
+            '<b>Educación</b>'+
+            checkboxHtml("indArea","Preescolar","Preescolar")+
+            checkboxHtml("indArea","Escolar","Escolar")+
+            checkboxHtml("indArea","Formación superior","Formación superior")+
+            checkboxHtml("indArea","Educación no reglada","Educación no reglada")+
+          '</div>'+
+          '<div>'+
+            '<b>Trabajo y Empleo</b>'+
+            checkboxHtml("indArea","Aprendizaje","Aprendizaje")+
+            checkboxHtml("indArea","Trabajo no remunerado","Trabajo no remunerado")+
+            checkboxHtml("indArea","Trabajo remunerado","Trabajo remunerado")+
+            checkboxHtml("indArea","Desempleo","Desempleo")+
+          '</div>'+
+          '<div>'+
+            '<b>Vida comunitaria, social y cívica</b>'+
+            checkboxHtml("indArea","Vida comunitaria","Vida comunitaria")+
+            checkboxHtml("indArea","Vida social","Vida social")+
+            checkboxHtml("indArea","Tiempo libre y recreación","Tiempo libre y recreación")+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<div id="benefitCaregiver" class="tab-panel">'+
+        '<div class="grid g3">'+
+          '<div>'+
+            '<b>Cuidadores y personal de apoyo</b>'+
+            checkboxHtml("indArea","Prevención de patología lumbar","Prevención de patología lumbar")+
+            checkboxHtml("indArea","Prevención de lesiones EESS","Prevención de lesiones EESS")+
+            checkboxHtml("indArea","Facilitar participación social del cuidador","Facilitar participación social del cuidador")+
+            checkboxHtml("indArea","Otro","Otro")+
+          '</div>'+
+          '<div>'+
+            '<b>¿En qué espacios necesita la AT?</b>'+
+            checkboxHtml("indSpace","Hogar","Hogar")+
+            checkboxHtml("indSpace","Espacio educacional","Espacio educacional")+
+            checkboxHtml("indSpace","Espacio laboral","Espacio laboral")+
+            checkboxHtml("indSpace","Espacios públicos comunitarios","Espacios públicos comunitarios")+
+          '</div>'+
+          '<div>'+
+            '<b>Espacio de mayor impacto</b>'+
+            radioHtml("indImpact","Hogar","Hogar",false)+
+            radioHtml("indImpact","Espacio educacional","Espacio educacional",true)+
+            radioHtml("indImpact","Espacio laboral","Espacio laboral",false)+
+            radioHtml("indImpact","Espacios públicos comunitarios","Espacios públicos comunitarios",false)+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<div id="benefitNotes" class="tab-panel">'+
+        '<label>Observaciones del médico</label>'+
+        '<textarea id="indNotes" rows="5"></textarea>'+
+      '</div>'+
+    '</fieldset>';
+
+  openMain(
+    "Indicación Ayudas Técnica",
+    body,
+    '<button class="btn gray" onclick="closeMain()">CERRAR</button> '+
+    '<button class="btn blue" onclick="showIndicationSummary()">RESUMEN</button> '+
+    '<button class="btn red" onclick="saveIndication()">GUARDAR</button>',
+    "large"
+  );
+
+  renderIndicationSpecs();
+  renderIndicationTarget();
+  toggleUsedChairOption();
+}
+
+function getReusableWheelchairs(){
+  return (DB.articles||[]).filter(article=>
+    article.type==="Silla de ruedas" &&
+    article.state==="DISPONIBLE USADO" &&
+    isArticleAvailableForDelivery(article)
+  );
+}
+
+function toggleUsedChairOption(){
+  const box=document.getElementById("usedChairOption");
+  const type=document.getElementById("indType");
+  const usage=document.getElementById("indUsage");
+
+  if(!box||!type||!usage)return;
+
+  if(type.value!=="Silla de ruedas" || usage.value!=="Temporal"){
+    box.style.display="none";
+    box.innerHTML="";
+    return;
+  }
+
+  const available=getReusableWheelchairs().length;
+
+  box.style.display="block";
+  box.innerHTML=
+    '<div class="message info" style="margin:0;border-left:4px solid #2e7d32">'+
+      '<div style="font-weight:700;color:#1b5e20;margin-bottom:4px">♻️ Entrega de silla de ruedas usada</div>'+
+      '<div class="small" style="margin-bottom:7px">'+
+        'Como el período de uso es <b>Temporal</b>, puede priorizarse una silla recuperada y disponible para reutilización.'+
+        ' Actualmente hay <b>'+available+'</b> silla(s) disponible(s).'+
+      '</div>'+
+      '<label class="checkbox" style="display:inline-flex;align-items:center">'+
+        '<input type="radio" name="indDeliverySource" value="REUTILIZADA" checked>'+
+        '<b>Entregar silla de ruedas usada disponible</b>'+
+      '</label>'+
+      '<label class="checkbox" style="display:inline-flex;align-items:center;margin-left:18px">'+
+        '<input type="radio" name="indDeliverySource" value="NUEVA">'+
+        'Mantener solicitud de silla nueva'+
+      '</label>'+
+      (available
+        ?''
+        :'<div class="small" style="margin-top:6px;color:#b71c1c"><b>Actualmente no hay una silla usada disponible.</b> La indicación quedará igualmente registrada y podrá abastecerse cuando exista disponibilidad.</div>')+
+    '</div>';
+}
+
+function checkboxHtml(name,value,label){
+  return '<label class="checkbox">'+
+    '<input type="checkbox" name="'+name+'" value="'+escapeAttribute(value)+'">'+
+    label+
+  '</label>';
+}
+
+function radioHtml(name,value,label,checked){
+  return '<label class="checkbox">'+
+    '<input type="radio" name="'+name+'" value="'+escapeAttribute(value)+'" '+(checked?"checked":"")+'>'+
+    label+
+  '</label>';
+}
+
+function renderIndicationSpecs(){
+  const type=document.getElementById("indType").value;
+  document.getElementById("indSpecs").innerHTML=
+    specificationOptions(type,[]);
+}
+
+function renderIndicationTarget(){
+  const type=document.getElementById("indType").value;
+
+  document.getElementById("indTarget").innerHTML=
+    "<b>Derivación automática:</b> "+type+
+    " → <b>"+getTarget(type)+"</b>.";
+}
+
+function readIndicationForm(){
+  return {
+    origin:document.getElementById("indOrigin").value,
+    destination:document.getElementById("indDestination").value,
+    type:document.getElementById("indType").value,
+    usage:document.getElementById("indUsage").value,
+    dependence:document.getElementById("indDependence").value,
+    priority:document.getElementById("indPriority").value,
+    date:document.getElementById("indDate").value,
+    definitive:document.querySelector('input[name="indDef"]:checked').value,
+    deliverySource:(document.querySelector('input[name="indDeliverySource"]:checked')||{}).value||"NUEVA",
+    specs:Array.from(document.querySelectorAll(".technical-spec"))
+      .map(item=>item.value),
+    areas:Array.from(document.querySelectorAll('input[name="indArea"]:checked'))
+      .map(item=>item.value),
+    spaces:Array.from(document.querySelectorAll('input[name="indSpace"]:checked'))
+      .map(item=>item.value),
+    impact:document.querySelector('input[name="indImpact"]:checked').value,
+    observations:document.getElementById("indNotes").value
+  };
+}
+
+function validateIndication(data){
+  const errors=[];
+
+  if(!data.date){
+    errors.push("Fecha de indicación");
+  }
+
+  if(data.date&&new Date(data.date)>new Date()){
+    errors.push("La fecha de indicación no puede ser futura");
+  }
+
+  if(!data.areas.length){
+    errors.push("Debe seleccionar al menos un área a beneficiar");
+  }
+
+  if(!data.spaces.length){
+    errors.push("Debe seleccionar al menos un espacio");
+  }
+
+  const duplicate=DB.indications.find(indication=>
+    indication.patientId===currentPatientId&&
+    indication.type===data.type&&
+    !["Finalizada","Anulada","Suspendida"].includes(indication.state)
+  );
+
+  if(duplicate){
+    errors.push(
+      "Ya existe una indicación vigente de "+data.type+
+      " (correlativo "+duplicate.id+")"
+    );
+  }
+
+  return errors;
+}
+
+function showIndicationSummary(){
+  const data=readIndicationForm();
+  const patient=getCurrentPatient();
+
+  openSub(
+    "Indicación Médica · Resumen y Confirmación",
+    '<div class="panel">'+
+      '<div class="panelTitle">Información general del paciente</div>'+
+      '<div class="panelBody grid g3">'+
+        summaryValue("Nombre",patient.name)+
+        summaryValue("Edad",calculateAge(patient.birth))+
+        summaryValue("RUT",patient.rut)+
+        summaryValue("Diagnóstico",patient.diagnosis)+
+        summaryValue("Ficha",patient.id)+
+        summaryValue("Institución",data.origin)+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Información clínica</div>'+
+      '<div class="panelBody grid g3">'+
+        summaryValue("Especialidad","Fisiatría")+
+        summaryValue("Profesional",USERS.MED.name)+
+        summaryValue("Fecha",formatDate(data.date))+
+        summaryValue("Ayuda técnica",data.type)+
+        summaryValue("Período",data.usage)+
+        summaryValue("Dependencia",data.dependence)+
+        summaryValue("Prioridad",data.priority)+
+        summaryValue("Definitiva",data.definitive)+
+        summaryValue("Modalidad de entrega",data.deliverySource==="REUTILIZADA"?"Silla de ruedas usada disponible":"Suministro estándar")+
+        summaryValue("Derivación",getTarget(data.type))+
+        '<div style="grid-column:span 3">'+
+          '<b>Especificaciones:</b> '+data.specs.join(", ")+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Áreas a beneficiar</div>'+
+      '<div class="panelBody">'+
+        data.areas.map(area=>'<span class="chip">'+area+'</span>').join("")+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Espacios de impacto</div>'+
+      '<div class="panelBody">'+
+        data.spaces.map(space=>'<span class="chip">'+space+'</span>').join("")+
+        '<br><b>Mayor impacto:</b> '+data.impact+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Observaciones</div>'+
+      '<div class="panelBody">'+(data.observations||"Sin observaciones")+'</div>'+
+    '</div>',
+
+    '<button class="btn gray" onclick="closeSub()">Volver</button> '+
+    '<button class="btn red" onclick="closeSub();saveIndication()">Confirmar y guardar</button>',
+
+    "large"
+  );
+}
+
+function saveIndication(){
+  const data=readIndicationForm();
+  const errors=validateIndication(data);
+
+  if(errors.length){
+    showMessage(
+      "Faltan datos o existen validaciones pendientes:<br>• "+
+      errors.join("<br>• ")
+    );
+    return;
+  }
+
+  const id=DB.nextIndication++;
+
+  const indication={
+    id:id,
+    patientId:currentPatientId,
+    origin:data.origin,
+    destination:data.destination,
+    doctor:USERS.MED.name,
+    date:data.date,
+    type:data.type,
+    definitive:data.definitive,
+    usage:data.usage,
+    dependence:data.dependence,
+    priority:data.priority,
+    specs:data.specs,
+    areas:data.areas,
+    spaces:data.spaces,
+    impact:data.impact,
+    observations:data.observations,
+    target:getTarget(data.type),
+    evaluator:"",
+    evaluationDate:"",
+    evaluation:null,
+    state:"Indicada",
+    requestId:"FIN"+(700+DB.indications.length),
+    contractState:"",
+    finState:"SOLICITUD DE CONSUMO",
+    deliveryDate:"",
+    deliverySource:data.deliverySource,
+    usedChairRequested:
+      data.type==="Silla de ruedas" &&
+      data.usage==="Temporal" &&
+      data.deliverySource==="REUTILIZADA",
+    stockReady:
+      (DB.stockLocal[data.type]||0)>0 ||
+      (
+        data.type==="Silla de ruedas" &&
+        data.usage==="Temporal" &&
+        data.deliverySource==="REUTILIZADA" &&
+        getReusableWheelchairs().length>0
+      ),
+    contacts:0,
+    condition:
+      data.type==="Silla de ruedas" &&
+      data.usage==="Temporal" &&
+      data.deliverySource==="REUTILIZADA"
+        ?"Usado en buenas condiciones"
+        :"Nuevo",
+    contract:null
+  };
+
+  DB.indications.unshift(indication);
+  selectedIndicationId=id;
+
+  persist();
+  closeMain();
+  renderIndications();
+  renderAdmin();
+
+  showMessage(
+    "Indicación médica registrada.<br>"+
+    "<b>Correlativo:</b> "+id+"<br>"+
+    "<b>Derivación:</b> "+indication.target+"<br>"+
+    (indication.usedChairRequested
+      ?"<b>Modalidad:</b> ♻️ Silla de ruedas usada disponible para reutilización.<br>"
+      :"")+
+    "<br>Siguiente paso: Administrador TI debe agendar la actividad de evaluación."
+  );
+}
+
+/* ================================================================
+   ACTIVIDAD / AGENDA
+================================================================ */
+function openActivity(kind){
+  const indication=getSelectedIndication();
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  if(!["TI","TO","KI"].includes(currentProfile)){
+    showMessage(
+      "El registro de actividad requiere perfil Administrador TI, TO o KI."
+    );
+    return;
+  }
+
+  let defaultActivity="Evaluación ayuda técnica (30)";
+
+  if(kind==="delivery"||
+     ["Evaluada","Chequeo conforme"].includes(indication.state)){
+    defaultActivity="Entrega ayuda técnica (30)";
+  }
+
+  const body=
+    '<label class="required">Actividad</label>'+
+    '<select id="activityType">'+
+      activityOption("Entrega ayuda técnica (15 min)",defaultActivity)+
+      activityOption("Entrega ayuda técnica (30)",defaultActivity)+
+      activityOption("Evaluación ayuda técnica (30)",defaultActivity)+
+      activityOption("Evaluación y entrega ayuda técnica (30)",defaultActivity)+
+    '</select>'+
+
+    '<div class="grid g2" style="margin-top:8px">'+
+      '<div>'+
+        '<label>Prioridad</label>'+
+        '<select id="activityPriority">'+
+          '<option>Prioritario</option>'+
+          '<option>Normal</option>'+
+        '</select>'+
+      '</div>'+
+      '<div>'+
+        '<label>Plazo</label>'+
+        '<select id="activityTerm">'+
+          '<option>1 Mes</option>'+
+          '<option>2 Meses</option>'+
+          '<option>3 Meses</option>'+
+        '</select>'+
+      '</div>'+
+    '</div>'+
+
+    '<label style="margin-top:8px">Observación</label>'+
+    '<textarea id="activityNotes" rows="3"></textarea>'+
+
+    '<div class="grid g2" style="margin-top:8px">'+
+      '<div>'+
+        '<label>Fecha</label>'+
+        '<input type="date" id="activityDate" value="'+today()+'">'+
+      '</div>'+
+      '<div>'+
+        '<label>Hora</label>'+
+        '<input type="time" id="activityTime" value="09:30">'+
+      '</div>'+
+    '</div>';
+
+  openMain(
+    "Ayudas Técnicas · Agregar actividad / Agendar",
+    body,
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="saveActivity(false)">Guardar</button> '+
+    '<button class="btn red" onclick="saveActivity(true)">Guardar Agendar</button>',
+    "small"
+  );
+}
+
+function activityOption(value,selected){
+  return '<option '+(value===selected?"selected":"")+'>'+value+'</option>';
+}
+
+function saveActivity(schedule){
+  const indication=getSelectedIndication();
+  const activity=document.getElementById("activityType").value;
+  const date=document.getElementById("activityDate").value;
+  const time=document.getElementById("activityTime").value;
+
+  if(schedule&&(!date||!time)){
+    showMessage(
+      "Para Guardar Agendar debe indicar fecha y hora."
+    );
+    return;
+  }
+
+  const text=activity.toLowerCase();
+
+  let kind="evaluation";
+
+  if(text.includes("entrega")&&!text.startsWith("evaluación")){
+    kind="delivery";
+  }
+
+  if(text.includes("evaluación y entrega")){
+    kind=indication.state==="Evaluada"
+      ?"delivery"
+      :"evaluation";
+  }
+
+  if(schedule){
+    DB.appointments.push({
+      id:DB.nextAppointment++,
+      indicationId:indication.id,
+      patientId:indication.patientId,
+      date:date,
+      time:time,
+      activity:activity,
+      area:indication.target,
+      kind:kind,
+      notes:document.getElementById("activityNotes").value,
+      state:"Agendada"
+    });
+
+    if(kind==="evaluation"){
+      indication.state="Agendada";
+    }
+
+    document.getElementById("agendaDate").value=date;
+  }
+
+  persist();
+  closeMain();
+
+  renderIndications();
+  renderAdmin();
+  renderAgenda();
+
+  if(schedule){
+    showMessage(
+      "Actividad agendada correctamente.<br>"+
+      "<b>"+activity+"</b><br>"+
+      formatDate(date)+" "+time+"<br><br>"+
+      "La actividad está disponible en el Escritorio Profesional.",
+      function(){
+        showPage("escritorio");
+      }
+    );
+  }else{
+    showMessage("Actividad registrada correctamente.");
+  }
+}
+
+function renderAgenda(){
+  const date=document.getElementById("agendaDate").value||today();
+
+  document.getElementById("agendaDate").value=date;
+
+  const appointments=DB.appointments.filter(
+    appointment=>appointment.date===date
+  );
+
+  document.getElementById("agendaBody").innerHTML=
+    appointments.length
+    ?appointments.map(appointment=>{
+      const patient=getPatient(appointment.patientId);
+      const delivery=appointment.kind==="delivery";
+
+      return '<tr class="'+(delivery?"delivery-row":"")+'">'+
+        '<td>'+appointment.time+'</td>'+
+        '<td>'+
+          '<span class="agenda-tag '+(delivery?"delivery":"")+'">'+
+            appointment.area+
+          '</span>'+
+          appointment.activity+
+          ' <button class="clip" title="Abrir atención" '+
+          'onclick="openAgendaAppointment('+appointment.id+')">📎</button>'+
+        '</td>'+
+        '<td>'+patient.id+' - '+patient.name+'</td>'+
+        '<td>'+patient.diagnosis+'</td>'+
+        '<td>EQUIPO 4 DR(A). ARIGON</td>'+
+        '<td>—</td>'+
+        '<td>'+appointment.state+'</td>'+
+      '</tr>';
+    }).join("")
+    :'<tr><td colspan="7" class="empty">'+
+      'Sin actividades agendadas para esta fecha.'+
+    '</td></tr>';
+}
+
+/* ================================================================
+   CORRECCIÓN DEL FLUJO:
+   AGENDA -> CLIP -> PERFIL TO/KI -> FORMULARIO EVALUACIÓN
+================================================================ */
+function openAgendaAppointment(appointmentId){
+  const appointment=DB.appointments.find(
+    item=>item.id===Number(appointmentId)
+  );
+
+  if(!appointment){
+    showMessage("No se encontró la actividad agendada.");
+    return;
+  }
+
+  const indication=getIndication(appointment.indicationId);
+
+  if(!indication){
+    showMessage(
+      "La actividad no tiene una indicación de ayuda técnica asociada."
+    );
+    return;
+  }
+
+  currentPatientId=indication.patientId;
+  selectedIndicationId=indication.id;
+  selectedAdminId=indication.id;
+
+  renderContext();
+
+  const requiredProfile=profileForTarget(indication.target);
+
+  currentProfile=requiredProfile;
+  document.getElementById("perfil").value=requiredProfile;
+  updateProfile();
+
+  if(appointment.kind==="evaluation"){
+    if(!["Indicada","Agendada","Evaluada"].includes(indication.state)){
+      showMessage(
+        "No se puede abrir una evaluación para una indicación en estado "+
+        indication.state+"."
+      );
+      return;
+    }
+
+    openEvaluation(appointment.id);
+    return;
+  }
+
+  openEvolution("delivery",appointment.id);
+}
+
+/* ================================================================
+   EVALUACIÓN TO / KI
+================================================================ */
+function openEvaluation(appointmentId){
+  const indication=getSelectedIndication();
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  const requiredProfile=profileForTarget(indication.target);
+
+  if(currentProfile!==requiredProfile){
+    currentProfile=requiredProfile;
+    document.getElementById("perfil").value=requiredProfile;
+    updateProfile();
+  }
+
+  const patient=getPatient(indication.patientId);
+  const evaluator=USERS[requiredProfile].name;
+
+  const body=
+    '<div class="patient-card">'+
+      '<span>👤 <b>'+patient.id+' - '+patient.name+'</b></span>'+
+      '<span>Edad Actual: '+calculateAge(patient.birth)+'</span>'+
+    '</div>'+
+
+    '<div class="message warning">'+
+      '<b>Nota:</b> los datos de la indicación médica están precargados y no son editables.'+
+    '</div>'+
+
+    '<fieldset>'+
+      '<legend>Datos de la Indicación Médica</legend>'+
+      '<div class="grid g4">'+
+        formRead("Correlativo",indication.id)+
+        formRead("Instituto Origen",indication.origin)+
+        '<div>'+
+          '<label>Instituto Destino</label>'+
+          '<select id="evalDestination">'+
+            instituteOptions(indication.destination)+
+          '</select>'+
+        '</div>'+
+        formRead("Especialidad indicadora","Fisiatría")+
+        formRead("Profesional indicador",indication.doctor)+
+        formRead("Ayuda Técnica indicada",indication.type)+
+        formRead("Evaluador",evaluator)+
+        '<div>'+
+          '<label class="required">Fecha evaluación</label>'+
+          '<input type="date" id="evalDate" value="'+today()+'">'+
+        '</div>'+
+      '</div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Parámetros revisables</legend>'+
+      '<div class="grid g4">'+
+        '<div>'+
+          '<label>Indicación definitiva</label>'+
+          '<select id="evalDefinitive">'+
+            options(["SI","NO"],indication.definitive)+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label>Período de uso</label>'+
+          '<select id="evalUsage">'+
+            options(["Permanente","Temporal","Por temporada"],indication.usage)+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label>Nivel dependencia</label>'+
+          '<select id="evalDependence">'+
+            options(["Total","Parcial","Leve"],indication.dependence)+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label>Prioridad entrega</label>'+
+          '<select id="evalPriority">'+
+            options(["Prioridad Normal","Urgente","Electiva"],indication.priority)+
+          '</select>'+
+        '</div>'+
+      '</div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Especificaciones técnicas modificables</legend>'+
+      '<div class="grid g4" id="evaluationSpecs">'+
+        specificationOptions(indication.type,indication.specs)+
+      '</div>'+
+      '<div class="grid g2" style="margin-top:10px">'+
+        '<div>'+
+          '<label class="required">¿La AT indicada es adecuada?</label>'+
+          '<select id="evalAdequate" onchange="toggleReevaluation()">'+
+            '<option>SI - se mantiene</option>'+
+            '<option>NO - reevaluar con fisiatra</option>'+
+          '</select>'+
+        '</div>'+
+        '<div id="reevaluationBox">'+
+          '<div class="message success">'+
+            'Se mantiene la ayuda técnica indicada; sólo se ajustan características técnicas.'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Áreas a beneficiar con la ayuda técnica</legend>'+
+
+      '<div class="tabs">'+
+        '<button class="tab-button active" onclick="switchTab(this,\'evalCif\')">'+
+          'Formulario CIF'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'evalBarriers\')">'+
+          'Barreras físicas/ambientales'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'evalSpaces\')">'+
+          'Validación de espacios'+
+        '</button>'+
+        '<button class="tab-button" onclick="switchTab(this,\'evalNotes\')">'+
+          'Observaciones evaluación'+
+        '</button>'+
+      '</div>'+
+
+      '<div id="evalCif" class="tab-panel active">'+
+        '<p>¿Puede el paciente o familia transportar la ayuda técnica?</p>'+
+        radioHtml("cifTransport","Sí","Sí",true)+
+        radioHtml("cifTransport","No","No",false)+
+
+        '<p>¿Requiere asistencia de terceros?</p>'+
+        radioHtml("cifHelp","Sí","Sí",false)+
+        radioHtml("cifHelp","No","No",true)+
+
+        '<p>¿Se desplaza adecuadamente con el equipo indicado?</p>'+
+        radioHtml("cifMove","Sí","Sí",true)+
+        radioHtml("cifMove","No","No",false)+
+      '</div>'+
+
+      '<div id="evalBarriers" class="tab-panel">'+
+        checkboxHtml("evalBarrier","Accesos con escalones / sin rampa","Accesos con escalones / sin rampa")+
+        checkboxHtml("evalBarrier","Ancho de puertas insuficiente","Ancho de puertas insuficiente")+
+        checkboxHtml("evalBarrier","Superficie irregular","Superficie irregular")+
+        checkboxHtml("evalBarrier","Vivienda en altura sin ascensor","Vivienda en altura sin ascensor")+
+        checkboxHtml("evalBarrier","Sin barreras relevantes","Sin barreras relevantes")+
+        '<label>Descripción de barreras</label>'+
+        '<textarea id="evalBarrierText" rows="3"></textarea>'+
+      '</div>'+
+
+      '<div id="evalSpaces" class="tab-panel">'+
+        '<div class="small">Espacios indicados por el médico:</div>'+
+        indication.spaces.map(
+          space=>'<label class="checkbox">'+
+            '<input type="checkbox" checked disabled>'+space+
+          '</label>'
+        ).join("")+
+        '<div class="grid g2" style="margin-top:8px">'+
+          '<div>'+
+            '<label class="required">¿El espacio es adecuado?</label>'+
+            '<select id="evalSpaceAdequate">'+
+              '<option>Sí</option>'+
+              '<option>No</option>'+
+              '<option>Parcialmente</option>'+
+            '</select>'+
+          '</div>'+
+          '<div>'+
+            '<label class="required">Tipo de espacio</label>'+
+            '<select id="evalSpaceType">'+
+              options(
+                ["Hogar","Espacio educacional","Espacio laboral","Espacio público comunitario"],
+                indication.impact
+              )+
+            '</select>'+
+          '</div>'+
+        '</div>'+
+      '</div>'+
+
+      '<div id="evalNotes" class="tab-panel">'+
+        '<label class="required">Notas clínicas del evaluador</label>'+
+        '<textarea id="evalClinicalNotes" rows="3"></textarea>'+
+        '<label style="margin-top:7px">Recomendaciones técnicas</label>'+
+        '<textarea id="evalRecommendations" rows="3"></textarea>'+
+        '<label style="margin-top:7px">Limitaciones o consideraciones especiales</label>'+
+        '<textarea id="evalLimitations" rows="3"></textarea>'+
+      '</div>'+
+    '</fieldset>';
+
+  openMain(
+    "Evaluación Ayudas Técnica · "+indication.target,
+    body,
+    '<button class="btn gray" onclick="closeMain()">CERRAR</button> '+
+    '<button class="btn red" onclick="saveEvaluation('+(appointmentId||0)+')">GUARDAR</button>',
+    "large"
+  );
+}
+
+function toggleReevaluation(){
+  const reevaluation=
+    document.getElementById("evalAdequate").selectedIndex===1;
+
+  document.getElementById("reevaluationBox").innerHTML=
+    reevaluation
+    ?'<label class="required">Motivo de reevaluación con el fisiatra</label>'+
+     '<textarea id="reevaluationReason" rows="2"></textarea>'
+    :'<div class="message success">'+
+       'Se mantiene la ayuda técnica indicada; sólo se ajustan características técnicas.'+
+     '</div>';
+}
+
+function saveEvaluation(appointmentId){
+  const indication=getSelectedIndication();
+
+  const date=document.getElementById("evalDate").value;
+  const notes=document.getElementById("evalClinicalNotes").value.trim();
+  const inadequate=
+    document.getElementById("evalAdequate").selectedIndex===1;
+
+  if(!date){
+    showMessage("La fecha de evaluación es obligatoria.");
+    return;
+  }
+
+  if(new Date(date)<new Date(indication.date)){
+    showMessage(
+      "La fecha de evaluación no puede ser anterior a la fecha de indicación."
+    );
+    return;
+  }
+
+  if(!notes){
+    showMessage(
+      "Las notas clínicas son obligatorias. Complete la pestaña Observaciones evaluación."
+    );
+    return;
+  }
+
+  if(
+    inadequate&&
+    !document.getElementById("reevaluationReason").value.trim()
+  ){
+    showMessage(
+      "Debe registrar el motivo de reevaluación con el fisiatra."
+    );
+    return;
+  }
+
+  indication.specs=
+    Array.from(document.querySelectorAll(".technical-spec"))
+      .map(item=>item.value);
+
+  indication.usage=
+    document.getElementById("evalUsage").value;
+
+  indication.dependence=
+    document.getElementById("evalDependence").value;
+
+  indication.priority=
+    document.getElementById("evalPriority").value;
+
+  indication.destination=
+    document.getElementById("evalDestination").value;
+
+  indication.definitive=
+    document.getElementById("evalDefinitive").value;
+
+  indication.evaluator=
+    USERS[currentProfile].name;
+
+  indication.evaluationDate=date;
+
+  indication.evaluation={
+    adequate:document.getElementById("evalSpaceAdequate").value,
+    spaceType:document.getElementById("evalSpaceType").value,
+    notes:notes,
+    recommendations:
+      document.getElementById("evalRecommendations").value,
+    limitations:
+      document.getElementById("evalLimitations").value,
+    barriers:
+      Array.from(
+        document.querySelectorAll('input[name="evalBarrier"]:checked')
+      ).map(item=>item.value)
+  };
+
+  const appointment=DB.appointments.find(
+    item=>item.id===Number(appointmentId)
+  );
+
+  if(appointment){
+    appointment.state="Realizada";
+  }
+
+  if(inadequate){
+    indication.state="Reevaluación fisiatra";
+
+    persist();
+    closeMain();
+    renderIndications();
+    renderAdmin();
+
+    showMessage(
+      "Evaluación guardada. La ayuda técnica debe ser reevaluada con el médico fisiatra."
+    );
+
+    return;
+  }
+
+  indication.state="Evaluada";
+
+  persist();
+  closeMain();
+  renderIndications();
+  renderAdmin();
+
+  openEvolution("evaluation",appointmentId);
+}
+
+/* ================================================================
+   EVOLUCIÓN Y PRESTACIONES
+================================================================ */
+function openEvolution(kind,appointmentId){
+  const indication=getSelectedIndication();
+  const patient=getPatient(indication.patientId);
+
+  evolutionContext={
+    kind:kind,
+    appointmentId:appointmentId
+  };
+
+  let review="";
+
+  if(kind==="delivery"){
+    review=
+      '<fieldset>'+
+        '<legend>Chequeo / Revisión conforme</legend>'+
+        '<div class="grid g2">'+
+          '<div>'+
+            '<label class="required">'+
+              '¿El elemento se ajusta a las condiciones del paciente?'+
+            '</label>'+
+            '<select id="reviewResult">'+
+              '<option>Aprobado - conforme</option>'+
+              '<option>Con problemas - citar nuevamente a evaluación</option>'+
+            '</select>'+
+          '</div>'+
+          '<div>'+
+            '<label>Acondicionamiento realizado</label>'+
+            '<input id="reviewConditioning" '+
+              (indication.target==="KINESIOLOGÍA"?"disabled":"")+
+              ' placeholder="'+
+              (
+                indication.target==="KINESIOLOGÍA"
+                ?"Kinesiología no realiza acondicionamiento"
+                :"Cojines, correas, etc."
+              )+
+            '">'+
+          '</div>'+
+        '</div>'+
+      '</fieldset>';
+  }
+
+  const text=
+    kind==="delivery"
+    ?"Se toman medidas al paciente y se realiza revisión conforme del artículo: "+
+      indication.type+" ("+indication.specs.join(", ")+")."
+    :"Paciente: "+patient.name+
+      "\nInstituto: "+indication.destination+
+      "\nIndicación Definitiva: "+indication.definitive+
+      "\n\nAyuda Técnica Solicitada"+
+      "\n• Tipo: "+indication.type+
+      "\n• Período de uso: "+indication.usage+
+      "\n• Nivel de dependencia: "+indication.dependence+
+      "\n• Prioridad: "+indication.priority+
+      "\n\nEspecificaciones"+
+      "\n• "+indication.specs.join("\n• ")+
+      "\n\nObservaciones: "+indication.evaluation.notes;
+
+  openMain(
+    kind==="delivery"
+      ?"Ingreso de Evolución · Revisión conforme"
+      :"Ingreso de Evaluación en Evolución",
+
+    '<div class="patient-card">'+
+      '<span>👤 <b>'+patient.id+' - '+patient.name+'</b></span>'+
+      '<span>'+formatDate(today())+' · '+USERS[currentProfile].name+'</span>'+
+    '</div>'+
+    review+
+    '<label class="required">Registro de la atención</label>'+
+    '<textarea id="evolutionText" rows="13">'+text+'</textarea>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="finishEvolution()">Finalizar</button>',
+
+    "large"
+  );
+}
+
+function finishEvolution(){
+  const indication=getSelectedIndication();
+  const text=document.getElementById("evolutionText").value.trim();
+
+  if(!text){
+    showMessage("Debe registrar la evolución de la atención.");
+    return;
+  }
+
+  if(evolutionContext.kind==="delivery"){
+    const result=document.getElementById("reviewResult").value;
+
+    if(result.startsWith("Con problemas")){
+      indication.state="Agendada";
+
+      DB.appointments.push({
+        id:DB.nextAppointment++,
+        indicationId:indication.id,
+        patientId:indication.patientId,
+        date:today(),
+        time:"09:30",
+        activity:"Evaluación ayuda técnica (30)",
+        area:indication.target,
+        kind:"evaluation",
+        notes:"Nueva evaluación por chequeo no conforme",
+        state:"Agendada"
+      });
+
+      persist();
+      closeMain();
+      renderIndications();
+      renderAdmin();
+      renderAgenda();
+
+      showMessage(
+        "Chequeo no conforme. Se agregó una nueva actividad de evaluación al Escritorio Profesional."
+      );
+
+      return;
+    }
+  }
+
+  openPrestations(evolutionContext.kind);
+}
+
+function openPrestations(kind){
+  prestationContext={kind:kind};
+
+  const indication=getSelectedIndication();
+  const patient=getPatient(indication.patientId);
+
+  let prestations;
+
+  if(kind==="delivery"){
+    prestations=[
+      "Entrega "+indication.type,
+      "Intervención en ayudas técnicas y tecnología asistida",
+      "Atención de padres"
+    ];
+  }else{
+    prestations=[
+      "Evaluación "+indication.type,
+      "Intervención en ayudas técnicas y tecnología asistida",
+      "Familia Contigo - Entrega Material",
+      "Informe",
+      "Seguimiento caso en Equipo"
+    ];
+  }
+
+  openMain(
+    "Registrar Prestaciones Individual",
+
+    '<div class="grid g3">'+
+      '<div><b>Profesional:</b> '+USERS[currentProfile].name+'</div>'+
+      '<div><b>Fecha:</b> '+formatDate(today())+'</div>'+
+      '<div><label class="checkbox"><input type="checkbox">Docencia</label></div>'+
+    '</div>'+
+
+    '<fieldset>'+
+      '<legend>Pacientes</legend>'+
+      patient.id+" - "+patient.name+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Prestaciones</legend>'+
+      '<table>'+
+        '<thead>'+
+          '<tr>'+
+            '<th>Selección</th>'+
+            '<th>Nombre</th>'+
+            '<th>#</th>'+
+            '<th>Comentario</th>'+
+          '</tr>'+
+        '</thead>'+
+        '<tbody>'+
+          prestations.map((name,index)=>
+            '<tr>'+
+              '<td>'+
+                '<input type="checkbox" class="prest-check" value="'+name+'" '+
+                (index===0?"checked":"")+
+                ' onchange="previewStock(this)">'+
+              '</td>'+
+              '<td>'+name+'</td>'+
+              '<td><input type="number" min="1" value="1" style="width:55px"></td>'+
+              '<td><input></td>'+
+            '</tr>'
+          ).join("")+
+        '</tbody>'+
+      '</table>'+
+    '</fieldset>'+
+
+    '<div id="prestMessage"></div>',
+
+    '<button class="btn gray" onclick="closeMain()">Cancelar</button> '+
+    '<button class="btn red" onclick="savePrestations()">Guardar</button>',
+
+    "large"
+  );
+}
+
+function previewStock(checkbox){
+  if(!checkbox.checked||prestationContext.kind!=="evaluation"){
+    return;
+  }
+
+  if(!checkbox.value.toLowerCase().includes("evaluación")){
+    return;
+  }
+
+  const indication=getSelectedIndication();
+  const local=DB.stockLocal[indication.type]||0;
+  const used=(indication.usedChairRequested&&indication.type==="Silla de ruedas")
+    ?getReusableWheelchairs().length
+    :0;
+
+  if(local>0 || used>0){
+    openSub(
+      "Confirmación de Stock",
+      '<div class="message success">'+
+        'El producto solicitado está disponible en stock. Puede continuar con el proceso de entrega.'+
+      '</div>'+
+      '<div class="small">'+
+        'Artículo: '+indication.type+' · Stock local: '+local+
+        (used>0?'<br>♻️ Sillas usadas disponibles para reutilización: '+used:'')+
+      '</div>',
+
+      '<button class="btn green" onclick="closeSub()">Continuar</button>',
+      "small"
+    );
+  }else{
+    openSub(
+      "Artículo solicitado no disponible",
+      '<div style="background:#ef6c00;color:#fff;padding:10px">'+
+        'El artículo solicitado no se encuentra disponible en este momento. '+
+        'Será notificado cuando haya reposición. '+
+        '<b>(será enviado a lista de espera)</b>'+
+      '</div>'+
+      '<div class="small" style="margin-top:7px">'+
+        'Stock central: '+(DB.stockCentral[indication.type]||0)+
+      '</div>',
+      '<button class="btn red" onclick="closeSub()">Continuar</button>',
+      "small"
+    );
+  }
+}
+
+function reserveReusableWheelchair(indication){
+  const chair=getReusableWheelchairs()[0];
+  if(!chair)return null;
+
+  chair.availableForDelivery=false;
+  chair.assignmentState="RESERVADA PARA ENTREGA";
+  chair.reservedForIndicationId=indication.id;
+  chair.reservedDate=today();
+
+  if(!DB.articleHistory[chair.code])DB.articleHistory[chair.code]=[];
+  DB.articleHistory[chair.code].push({
+    correlative:Math.floor(Math.random()*90000),
+    state:"RESERVADA PARA ENTREGA",
+    date:new Date().toLocaleString(),
+    warehouse:"RESERVA PARA INDICACIÓN "+indication.id,
+    user:"cesar.jimenez"
+  });
+
+  return chair;
+}
+
+function savePrestations(){
+  const selected=
+    Array.from(document.querySelectorAll(".prest-check:checked"))
+      .map(item=>item.value);
+
+  if(!selected.length){
+    showMessage("Debe seleccionar al menos una prestación.");
+    return;
+  }
+
+  const indication=getSelectedIndication();
+
+  if(prestationContext.kind==="delivery"){
+    indication.state="Chequeo conforme";
+    indication.contractState="SOLICITADO";
+
+    persist();
+    closeMain();
+    renderIndications();
+    renderAdmin();
+
+    showMessage(
+      "Prestaciones registradas y chequeo conforme. "+
+      "Administrador TI puede realizar la prevalidación de entrega."
+    );
+
+    return;
+  }
+
+  const localStock=(DB.stockLocal[indication.type]||0)>0;
+  const wantsReturnedChair=
+    indication.type==="Silla de ruedas" &&
+    indication.usage==="Temporal" &&
+    indication.usedChairRequested;
+
+  let stock=false;
+
+  /* Si el médico solicitó explícitamente reutilización para una indicación
+     temporal, se prioriza y reserva una silla usada antes que una nueva. */
+  if(wantsReturnedChair){
+    const reserved=reserveReusableWheelchair(indication);
+    if(reserved){
+      indication.usedChairCode=reserved.code;
+      indication.condition="Usado en buenas condiciones";
+      indication.stockReady=true;
+      indication.finState="SOLICITUD DE CONSUMO";
+      stock=true;
+    }
+  }else if(localStock){
+    stock=true;
+  }
+
+  if(stock){
+    if(stock){
+      indication.state="Evaluada";
+      indication.stockReady=true;
+      indication.finState="SOLICITUD DE CONSUMO";
+
+      createOrder("CON",indication);
+
+    persist();
+    closeMain();
+    renderIndications();
+    renderAdmin();
+
+      showMessage(
+        "Prestaciones registradas. "+
+        (indication.usedChairCode
+          ?"La silla usada fue reservada para esta indicación.<br>"
+          :"El artículo está disponible.<br>")+
+        "Debe crear y agendar la actividad <b>Entrega ayuda técnica</b>.",
+        function(){
+          currentProfile="TI";
+          document.getElementById("perfil").value="TI";
+          updateProfile();
+          openActivity("delivery");
+        }
+      );
+    }
+  }
+  if(!stock){
+    indication.state="Lista de Espera";
+    indication.stockReady=false;
+    indication.contractState="SOLICITADO";
+
+    if(wantsReturnedChair){
+      indication.finState="ESPERA REUTILIZACIÓN";
+      /* No se genera compra nueva: la indicación espera una silla recuperada. */
+    }else if((DB.stockCentral[indication.type]||0)>0){
+      indication.finState="SOLICITUD DE TRASPASO";
+      createOrder("TRA",indication);
+    }else{
+      indication.finState="SOLICITUD DE COMPRA";
+      createOrder("COM",indication);
+    }
+
+    persist();
+    closeMain();
+    renderIndications();
+    renderAdmin();
+
+    showMessage(
+      "Prestaciones registradas. El paciente queda en "+
+      "<b>Lista de Espera</b>"+
+      (wantsReturnedChair
+        ?" a la espera de una silla de ruedas usada disponible para reutilización."
+        :" por falta de stock.")
+    );
+  }
+}
+
+/* ================================================================
+   VER INDICACIÓN
+================================================================ */
+function openViewIndication(){
+  const indication=getSelectedIndication();
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  const patient=getPatient(indication.patientId);
+
+  openMain(
+    "Indicación Ayuda Técnica · Visualización",
+    indicationDetailHtml(indication,patient),
+    '<button class="btn gray" onclick="window.print()">Imprimir</button> '+
+    '<button class="btn red" onclick="closeMain()">Cerrar</button>',
+    "large"
+  );
+}
+
+function indicationDetailHtml(indication,patient){
+  return '<div style="text-align:center;color:var(--red);font-weight:bold;font-size:15px;margin-bottom:8px">'+
+    'Indicación Ayuda Técnica'+
+  '</div>'+
+
+  '<div class="panel">'+
+    '<div class="panelTitle">Datos del Paciente</div>'+
+    '<div class="panelBody grid g4">'+
+      summaryValue("Nombre",patient.name)+
+      summaryValue("RUT",patient.rut)+
+      summaryValue("Sexo",patient.sex)+
+      summaryValue("Edad",calculateAge(patient.birth))+
+      summaryValue("Ficha",patient.id)+
+      summaryValue("Diagnóstico",patient.diagnosis)+
+      summaryValue("Instituto",patient.institute)+
+      summaryValue("Contacto",patient.phone)+
+    '</div>'+
+  '</div>'+
+
+  '<div class="panel">'+
+    '<div class="panelTitle">Información General</div>'+
+    '<div class="panelBody grid g3">'+
+      summaryValue("Correlativo",indication.id)+
+      summaryValue("Especialidad","Fisiatría")+
+      summaryValue("Profesional",indication.doctor)+
+      summaryValue("Fecha",formatDate(indication.date))+
+      summaryValue("Ayuda Técnica",indication.type)+
+      summaryValue("Modelo",indication.specs.join(", "))+
+      summaryValue("Período",indication.usage)+
+      summaryValue("Dependencia",indication.dependence)+
+      summaryValue("Prioridad",indication.priority)+
+      summaryValue("Modalidad de entrega",
+        indication.deliverySource==="REUTILIZADA"
+          ?"Silla de ruedas usada disponible"
+          :"Suministro estándar")+
+      summaryValue("Estado",indication.state)+
+    '</div>'+
+  '</div>'+
+
+  '<div class="panel">'+
+    '<div class="panelTitle">Áreas a Beneficiar</div>'+
+    '<div class="panelBody">'+
+      indication.areas.map(
+        area=>'<span class="chip">☑ '+area+'</span>'
+      ).join("")+
+    '</div>'+
+  '</div>'+
+
+  '<div class="panel">'+
+    '<div class="panelTitle">Evaluación del Espacio</div>'+
+    '<div class="panelBody">'+
+      '<b>Espacios:</b> '+indication.spaces.join(", ")+'<br>'+
+      '<b>Mayor impacto:</b> '+indication.impact+
+      (
+        indication.evaluation
+        ?'<br><b>Adecuado:</b> '+indication.evaluation.adequate+
+         ' · '+indication.evaluation.spaceType
+        :""
+      )+
+    '</div>'+
+  '</div>'+
+
+  '<div class="panel">'+
+    '<div class="panelTitle">Observaciones</div>'+
+    '<div class="panelBody">'+
+      (indication.observations||"Sin observaciones")+
+    '</div>'+
+  '</div>'+
+
+  (
+    indication.evaluation
+    ?'<div class="panel">'+
+      '<div class="panelTitle">Evaluación '+indication.target+'</div>'+
+      '<div class="panelBody">'+
+        '<b>Evaluador:</b> '+indication.evaluator+
+        ' · '+formatDate(indication.evaluationDate)+'<br>'+
+        '<b>Notas:</b> '+indication.evaluation.notes+'<br>'+
+        '<b>Recomendaciones:</b> '+
+          (indication.evaluation.recommendations||"—")+'<br>'+
+        '<b>Limitaciones:</b> '+
+          (indication.evaluation.limitations||"—")+
+      '</div>'+
+    '</div>'
+    :""
+  );
+}
+
+/* ================================================================
+   ANULACIÓN
+================================================================ */
+function openCancel(origin){
+  cancelOrigin=origin;
+
+  const indication=
+    origin==="admin"
+    ?getIndication(selectedAdminId)
+    :getSelectedIndication();
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  openMain(
+    "Confirmar anulación",
+
+    '<div style="background:#f2f2f2;padding:7px">'+
+      '¿Está seguro de anular la indicación correlativo '+
+      indication.id+' - '+indication.origin+'?'+
+    '</div>'+
+
+    '<label class="required" style="margin-top:8px">'+
+      'Motivos de eliminación'+
+    '</label>'+
+    '<select id="cancelReason">'+
+      '<option value="">Seleccione</option>'+
+      '<option>Se rechaza ayuda técnica</option>'+
+      '<option>No necesita ayuda técnica</option>'+
+      '<option>Error en datos</option>'+
+      '<option>Duplicado</option>'+
+      '<option>Cambio de indicación</option>'+
+    '</select>'+
+
+    '<label class="required" style="margin-top:8px">'+
+      'Observación'+
+    '</label>'+
+    '<textarea id="cancelObservation" rows="4"></textarea>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="confirmCancel()">Anular</button>',
+
+    "small"
+  );
+}
+
+function confirmCancel(){
+  const reason=document.getElementById("cancelReason").value;
+  const observation=
+    document.getElementById("cancelObservation").value.trim();
+
+  if(!reason||!observation){
+    showMessage("Motivo y observación son obligatorios.");
+    return;
+  }
+
+  const indication=
+    cancelOrigin==="admin"
+    ?getIndication(selectedAdminId)
+    :getSelectedIndication();
+
+  indication.state="Anulada";
+  indication.finState="ANULADO";
+  indication.cancellation={
+    reason:reason,
+    observation:observation,
+    date:today(),
+    user:USERS[currentProfile].name
+  };
+
+  persist();
+  closeMain();
+  renderIndications();
+  renderAdmin();
+
+  showMessage(
+    "Indicación anulada. Motivo y observación registrados en la trazabilidad."
+  );
+}
+
+/* ================================================================
+   HISTORIAL Y CICLOPIT
+================================================================ */
+function openHistory(){
+  const patient=getCurrentPatient();
+
+  const data=DB.indications.filter(
+    indication=>indication.patientId===patient.id
+  );
+
+  openMain(
+    "Historial de Entregas de Ayudas Técnicas",
+
+    '<table>'+
+      '<thead>'+
+        '<tr>'+
+          '<th>Correlativo</th>'+
+          '<th>Tipo AT</th>'+
+          '<th>Descripción</th>'+
+          '<th>ID solicitud</th>'+
+          '<th>Fecha indicación</th>'+
+          '<th>Profesional</th>'+
+          '<th>Evaluador</th>'+
+          '<th>Fecha evaluación</th>'+
+          '<th>Estado</th>'+
+          '<th>Fecha entrega</th>'+
+        '</tr>'+
+      '</thead>'+
+      '<tbody>'+
+        data.map(indication=>
+          '<tr onclick="openHistoryDetail('+indication.id+')">'+
+            '<td>'+indication.id+'</td>'+
+            '<td>'+indication.type+'</td>'+
+            '<td>'+indication.specs.join(", ")+'</td>'+
+            '<td>'+indication.requestId+'</td>'+
+            '<td>'+formatDate(indication.date)+'</td>'+
+            '<td>'+indication.doctor+'</td>'+
+            '<td>'+(indication.evaluator||"—")+'</td>'+
+            '<td>'+formatDate(indication.evaluationDate)+'</td>'+
+            '<td>'+indication.state+'</td>'+
+            '<td>'+formatDate(indication.deliveryDate)+'</td>'+
+          '</tr>'
+        ).join("")+
+      '</tbody>'+
+    '</table>',
+
+    '<button class="btn gray" onclick="closeMain()">Volver</button> '+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button>',
+
+    "large"
+  );
+}
+
+function openHistoryDetail(id){
+  const indication=getIndication(id);
+  const patient=getPatient(indication.patientId);
+
+  openSub(
+    "Detalle de la Indicación Técnica",
+
+    '<table>'+
+      '<tr><td><b>Nombre del Paciente</b></td><td>'+patient.name+'</td></tr>'+
+      '<tr><td><b>Edad</b></td><td>'+calculateAge(patient.birth)+'</td></tr>'+
+      '<tr><td><b>Dirección</b></td><td>'+patient.address+'</td></tr>'+
+      '<tr><td><b>Teléfono</b></td><td>'+patient.phone+'</td></tr>'+
+      '<tr><td><b>Fecha indicación</b></td><td>'+formatDate(indication.date)+'</td></tr>'+
+      '<tr><td><b>Profesional</b></td><td>'+indication.doctor+'</td></tr>'+
+      '<tr><td><b>Especialidad</b></td><td>'+indication.target+'</td></tr>'+
+      '<tr><td><b>Áreas a beneficiar</b></td><td>'+
+        indication.areas.map(area=>"☑ "+area).join("<br>")+
+      '</td></tr>'+
+      '<tr><td><b>Observaciones</b></td><td>'+
+        (indication.observations||"—")+
+      '</td></tr>'+
+      '<tr><td><b>Comentarios</b></td><td>'+
+        (
+          indication.evaluation
+          ?indication.evaluation.recommendations
+          :"—"
+        )+
+      '</td></tr>'+
+    '</table>',
+
+    '<button class="btn gray" onclick="window.print()">Imprimir</button> '+
+    '<button class="btn gray" onclick="closeSub()">Cerrar</button>',
+
+    "small"
+  );
+}
+
+function openCiclopit(){
+  const patient=getCurrentPatient();
+
+  const data=DB.maintenance.filter(
+    maintenance=>maintenance.patientId===patient.id
+  );
+
+  openMain(
+    "Mantenciones Ciclopits",
+
+    '<table>'+
+      '<thead>'+
+        '<tr>'+
+          '<th>Fecha</th>'+
+          '<th>N° Ficha</th>'+
+          '<th>Paciente</th>'+
+          '<th>Modelo</th>'+
+          '<th>Parte</th>'+
+          '<th>Descripción</th>'+
+          '<th>Técnico</th>'+
+          '<th>Instituto</th>'+
+          '<th>Detalle</th>'+
+        '</tr>'+
+      '</thead>'+
+      '<tbody>'+
+        data.map((maintenance,index)=>
+          '<tr>'+
+            '<td>'+formatDate(maintenance.date)+'</td>'+
+            '<td>'+maintenance.patientId+'</td>'+
+            '<td>'+maintenance.patient+'</td>'+
+            '<td>'+maintenance.model+'</td>'+
+            '<td>'+maintenance.part+'</td>'+
+            '<td>'+maintenance.description+'</td>'+
+            '<td>'+maintenance.technician+'</td>'+
+            '<td>'+maintenance.institute+'</td>'+
+            '<td><a href="javascript:openWorkOrder('+index+')">Ver más</a></td>'+
+          '</tr>'
+        ).join("")+
+      '</tbody>'+
+    '</table>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button>',
+
+    "large"
+  );
+}
+
+function openWorkOrder(index){
+  const patient=getCurrentPatient();
+
+  const maintenance=
+    DB.maintenance.filter(item=>item.patientId===patient.id)[index];
+
+  openSub(
+    "ORDEN DE TRABAJO · CICLOPIT / TELETÓN",
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Datos del Paciente</div>'+
+      '<div class="panelBody grid g3">'+
+        summaryValue("Ficha",patient.id)+
+        summaryValue("Nombre",patient.name)+
+        summaryValue("Diagnóstico",patient.diagnosis)+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Información General</div>'+
+      '<div class="panelBody grid g3">'+
+        summaryValue("Fecha",formatDate(maintenance.date))+
+        summaryValue("Lugar",maintenance.institute)+
+        summaryValue("Programa","Sí")+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Voluntariado</div>'+
+      '<div class="panelBody">'+
+        '<b>Nombre:</b> '+maintenance.technician+
+        ' · <b>Rol:</b> Voluntario CICLOPIT'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Ayuda Técnica Intervenida</div>'+
+      '<div class="panelBody">'+
+        '<b>Modelo:</b> '+maintenance.model+'<br>'+
+        '<b>Parte:</b> '+maintenance.part+'<br>'+
+        '<b>Intervención:</b> '+maintenance.description+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Tutor Responsable</div>'+
+      '<div class="panelBody">'+
+        'María Puebla · RUT 12.345.678-9 · mpuebla@ejemplo.cl'+
+      '</div>'+
+    '</div>',
+
+    '<button class="btn red" onclick="window.print()">Imprimir / Guardar PDF</button> '+
+    '<button class="btn gray" onclick="closeSub()">Volver</button>',
+
+    "large"
+  );
+}
+
+/* ================================================================
+   ADMINISTRADOR
+================================================================ */
+function renderAdmin(){
+  const filters={
+    institute:document.getElementById("adminInstitute").value,
+    specialty:document.getElementById("adminSpecialty").value,
+    professional:document.getElementById("adminProfessional").value,
+    type:document.getElementById("adminType").value,
+    contract:document.getElementById("adminContract").value,
+    state:document.getElementById("adminState").value,
+    fin:document.getElementById("adminFin").value,
+    from:document.getElementById("adminFrom").value,
+    to:document.getElementById("adminTo").value
+  };
+
+  const list=DB.indications.filter(indication=>{
+    const specialty=
+      indication.target==="TERAPIA OCUPACIONAL"
+      ?"Terapia Ocupacional"
+      :"Kinesiología";
+
+    return (
+      filters.institute==="Todos"||
+      indication.origin.includes(filters.institute)
+    )&&(
+      filters.specialty==="Todas"||
+      filters.specialty==="Fisiatría"||
+      specialty===filters.specialty
+    )&&(
+      filters.professional==="Todos"||
+      indication.doctor===filters.professional
+    )&&(
+      filters.type==="Todos"||
+      indication.type===filters.type
+    )&&(
+      filters.contract==="Todos"||
+      indication.contractState===filters.contract
+    )&&(
+      filters.state==="Todos"||
+      indication.state===filters.state
+    )&&(
+      filters.fin==="Todos"||
+      indication.finState===filters.fin
+    )&&(
+      !filters.from||
+      indication.date>=filters.from
+    )&&(
+      !filters.to||
+      indication.date<=filters.to
+    );
+  });
+
+  document.getElementById("adminBody").innerHTML=
+    list.length
+    ?list.map(indication=>{
+      const patient=getPatient(indication.patientId);
+      const bellClass=indication.stockReady?"green":"red";
+
+      return '<tr class="'+(selectedAdminId===indication.id?"selected":"")+'" '+
+        'onclick="selectAdmin('+indication.id+')" '+
+        'ondblclick="openAdminPatient('+indication.id+')">'+
+
+        '<td>'+indication.id+'</td>'+
+        '<td>'+indication.origin.replace(/^IT \d+ - /,"")+'</td>'+
+        '<td>'+indication.doctor+'</td>'+
+        '<td>'+(indication.evaluator||"—")+'</td>'+
+        '<td>'+patient.id+' - '+patient.name.toUpperCase()+'</td>'+
+        '<td>'+indication.type+'</td>'+
+        '<td>'+indication.requestId+'</td>'+
+        '<td>'+formatDate(indication.date)+'</td>'+
+        '<td>'+stateBadge(indication.state,"indication")+'</td>'+
+        '<td>'+stateBadge(indication.contractState,"contract")+'</td>'+
+        '<td>'+stateBadge(indication.finState,"fin")+'</td>'+
+        '<td style="white-space:nowrap">'+
+          '<button class="mini blue" onclick="event.stopPropagation();openAdminContract('+indication.id+')">'+
+            'Ver contrato'+
+          '</button>'+
+          '<button class="mini red-outline" onclick="event.stopPropagation();openAdminIndication('+indication.id+')">'+
+            'Ver indicación'+
+          '</button>'+
+          '<button class="bell '+bellClass+'" onclick="event.stopPropagation();notifyWarehouse('+indication.id+')">'+
+            '🔔'+
+          '</button>'+
+        '</td>'+
+      '</tr>';
+    }).join("")
+    :'<tr><td colspan="12" class="empty">'+
+      'Sin registros para los filtros aplicados.'+
+    '</td></tr>';
+
+  updateAdminToolbar();
+}
+
+function selectAdmin(id){
+  selectedAdminId=Number(id);
+  selectedIndicationId=Number(id);
+  currentPatientId=getIndication(id).patientId;
+
+  renderContext();
+  renderAdmin();
+}
+
+function openAdminPatient(id){
+  selectAdmin(id);
+  showPage("ayudas");
+}
+
+function updateAdminToolbar(){
+  const indication=getIndication(selectedAdminId);
+  const ti=currentProfile==="TI";
+
+  const closed=
+    indication&&
+    ["Anulada","Suspendida"].includes(indication.state);
+
+  document.getElementById("adActivity").disabled=
+    !(indication&&ti&&!closed&&indication.finState!=="DEVUELTO");
+
+  document.getElementById("adPrevalidation").disabled=
+    !(indication&&ti&&indication.state==="Chequeo conforme");
+
+  document.getElementById("adContact").disabled=
+    !(indication&&ti&&indication.state==="Lista de Espera");
+
+  document.getElementById("adCancel").disabled=
+    !(
+      indication&&
+      ti&&
+      !closed&&
+      indication.finState!=="ENTREGADO"
+    );
+
+  document.getElementById("adReturn").disabled=
+    !(
+      indication&&
+      ti&&
+      indication.type==="Silla de ruedas"&&
+      indication.contractState==="EMITIDO"&&
+      indication.finState!=="DEVUELTO"
+    );
+
+  document.getElementById("adHistory").disabled=
+    !indication;
+}
+
+function clearAdminFilters(){
+  [
+    "adminInstitute",
+    "adminSpecialty",
+    "adminProfessional",
+    "adminType",
+    "adminContract",
+    "adminState",
+    "adminFin"
+  ].forEach(id=>{
+    document.getElementById(id).selectedIndex=0;
+  });
+
+  document.getElementById("adminFrom").value="";
+  document.getElementById("adminTo").value="";
+
+  renderAdmin();
+}
+
+document.getElementById("adRefresh")
+  .addEventListener("click",renderAdmin);
+
+document.getElementById("adActivity")
+  .addEventListener("click",()=>openActivity());
+
+document.getElementById("adPrevalidation")
+  .addEventListener("click",openPrevalidation);
+
+document.getElementById("adContact")
+  .addEventListener("click",openContact);
+
+document.getElementById("adCancel")
+  .addEventListener("click",()=>openCancel("admin"));
+
+document.getElementById("adReturn")
+  .addEventListener("click",openReturn);
+
+document.getElementById("adHistory")
+  .addEventListener("click",openHistory);
+
+document.getElementById("adExport")
+  .addEventListener("click",exportAdmin);
+
+function openAdminIndication(id){
+  selectAdmin(id);
+  openViewIndication();
+}
+
+function openAdminContract(id){
+  selectAdmin(id);
+
+  const indication=getIndication(id);
+
+  if(
+    ["EMITIDO","ENTREGADO"].includes(indication.contractState)||
+    indication.contract
+  ){
+    openContract(indication);
+    return;
+  }
+
+  if(indication.contractState==="SOLICITADO"){
+    if(indication.state==="Chequeo conforme"){
+      openPrevalidation();
+    }else{
+      showMessage(
+        "El contrato está solicitado, pero la prevalidación se habilita después del chequeo conforme."
+      );
+    }
+    return;
+  }
+
+  showMessage(
+    "El contrato se generará una vez aprobada la indicación y registrada la prevalidación."
+  );
+}
+
+function notifyWarehouse(id){
+  const indication=getIndication(id);
+
+  const text=
+    indication.stockReady
+    ?"Notificación de stock disponible para entrega enviada a bodega y logística.<br>"+
+     "Artículo: "+indication.type+" · correlativo "+indication.id
+    :"Notificación enviada a bodega para gestionar el artículo.<br>"+
+     "Artículo: "+indication.type+" · correlativo "+indication.id+
+     "<br>Estado FIN700: "+indication.finState;
+
+  showMessage(text);
+}
+
+/* ================================================================
+   CONTACTO PACIENTE
+================================================================ */
+function openContact(){
+  const indication=getIndication(selectedAdminId);
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  const patient=getPatient(indication.patientId);
+
+  openMain(
+    "Aviso y Agendar Cita con el paciente",
+
+    '<div class="message info">'+
+      'Paciente: <b>'+patient.name+'</b><br>'+
+      'Artículo: <b>'+indication.type+'</b><br>'+
+      'Intentos registrados: <b>'+indication.contacts+' de 3</b>'+
+    '</div>'+
+
+    '<label class="required">Resultado del contacto</label>'+
+    '<select id="contactResult">'+
+      '<option>Contacto exitoso - acuerda fecha de entrega</option>'+
+      '<option>No fue posible ubicar al paciente</option>'+
+    '</select>'+
+
+    '<label class="required" style="margin-top:7px">Observación</label>'+
+    '<textarea id="contactNote" rows="3"></textarea>'+
+
+    '<div class="small">'+
+      'Al tercer intento sin contacto, el paciente queda suspendido y debe reiniciar desde Evaluación Fisiátrica.'+
+    '</div>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="saveContact()">Registrar contacto</button>',
+
+    "small"
+  );
+}
+
+function saveContact(){
+  const indication=getIndication(selectedAdminId);
+  const note=document.getElementById("contactNote").value.trim();
+
+  if(!note){
+    showMessage("La observación del contacto es obligatoria.");
+    return;
+  }
+
+  if(document.getElementById("contactResult").selectedIndex===0){
+    indication.stockReady=true;
+
+    persist();
+    closeMain();
+    renderAdmin();
+
+    showMessage(
+      "Contacto exitoso. El artículo queda reservado. Debe agendar la actividad de entrega.",
+      function(){
+        openActivity("delivery");
+      }
+    );
+
+    return;
+  }
+
+  indication.contacts++;
+
+  if(indication.contacts>=3){
+    indication.state="Suspendida";
+    indication.finState="ANULADO";
+
+    persist();
+    closeMain();
+    renderAdmin();
+    renderIndications();
+
+    showMessage(
+      "Paciente suspendido. Debe reiniciar el flujo desde Evaluación Fisiátrica como nueva prescripción."
+    );
+  }else{
+    persist();
+    closeMain();
+    renderAdmin();
+
+    showMessage(
+      "Intento de contacto registrado: "+indication.contacts+" de 3."
+    );
+  }
+}
+
+/* ================================================================
+   PREVALIDACIÓN Y CONTRATO
+================================================================ */
+function openPrevalidation(){
+  const indication=
+    getSelectedIndication()||
+    getIndication(selectedAdminId);
+
+  if(!indication){
+    showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  if(indication.state!=="Chequeo conforme"){
+    showMessage(
+      "La prevalidación sólo se habilita después del chequeo conforme."
+    );
+    return;
+  }
+
+  const patient=getPatient(indication.patientId);
+  const start=today();
+  const end=new Date(start);
+
+  end.setFullYear(
+    end.getFullYear()+
+    (indication.condition==="Nuevo"?2:1)
+  );
+
+  openMain(
+    "Prevalidación de Entrega de Ayuda Técnica - Teletón",
+
+    '<div style="text-align:center;color:var(--red);font-size:15px;font-weight:bold;margin-bottom:10px">'+
+      'Prevalidación de Entrega de Ayuda Técnica - Teletón'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Datos del Paciente</div>'+
+      '<div class="panelBody grid g3">'+
+        formRead("Nombre",patient.id+" - "+patient.name)+
+        formRead("Edad",calculateAge(patient.birth))+
+        formRead("Instituto",patient.institute)+
+        formRead("Estado",patient.active?"E - ACTIVO":"INACTIVO")+
+        formRead("Diagnóstico específico",patient.diagnosis)+
+        formRead("Condición funcional",patient.functional)+
+        formRead("Dirección",patient.address)+
+        formRead("Teléfonos",patient.phone)+
+        '<div>'+
+          '<label>Representante Legal</label>'+
+          '<input id="pvLegal">'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Datos de Indicación</div>'+
+      '<div class="panelBody grid g3">'+
+        formRead("Correlativo",indication.id)+
+        formRead("Profesional evaluador",indication.evaluator)+
+        formRead("Artículo solicitado",indication.type.toUpperCase())+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Datos del Contrato</div>'+
+      '<div class="panelBody grid g3">'+
+        '<div>'+
+          '<label class="required">Fecha Contrato</label>'+
+          '<input type="date" id="pvStart" value="'+start+'" onchange="calculateContractEnd()">'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Fecha Expiración</label>'+
+          '<input type="date" id="pvEnd" value="'+end.toISOString().slice(0,10)+'">'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Nombre Receptor</label>'+
+          '<input id="pvReceiver">'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Domicilio Receptor</label>'+
+          '<input id="pvAddress">'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Región</label>'+
+          '<select id="pvRegion">'+
+            '<option value="">No indicada</option>'+
+            '<option>Arica y Parinacota</option>'+
+            '<option>Coquimbo</option>'+
+            '<option>Valparaíso</option>'+
+            '<option>Metropolitana</option>'+
+            '<option>Biobío</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Comuna</label>'+
+          '<select id="pvCommune">'+
+            '<option value="">No informada</option>'+
+            '<option>Arica</option>'+
+            '<option>La Serena</option>'+
+            '<option>San Felipe</option>'+
+            '<option>Valparaíso</option>'+
+            '<option>Santiago</option>'+
+            '<option>Concepción</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Parentesco</label>'+
+          '<select id="pvRelationship">'+
+            '<option>SE DESCONOCE</option>'+
+            '<option>MADRE</option>'+
+            '<option>PADRE</option>'+
+            '<option>ABUELO(A)</option>'+
+            '<option>TUTOR LEGAL</option>'+
+          '</select>'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">RUT Receptor</label>'+
+          '<input id="pvRut" placeholder="12345678-9">'+
+        '</div>'+
+        '<div>'+
+          '<label class="required">Teléfono Receptor</label>'+
+          '<input id="pvPhone">'+
+        '</div>'+
+      '</div>'+
+    '</div>'+
+
+    '<div class="panel">'+
+      '<div class="panelTitle">Observaciones</div>'+
+      '<div class="panelBody">'+
+        '<textarea id="pvNotes" rows="3"></textarea>'+
+      '</div>'+
+    '</div>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="savePrevalidation()">Guardar</button>',
+
+    "large"
+  );
+}
+
+function calculateContractEnd(){
+  const indication=
+    getSelectedIndication()||
+    getIndication(selectedAdminId);
+
+  const start=document.getElementById("pvStart").value;
+
+  if(!start)return;
+
+  const end=new Date(start);
+
+  end.setFullYear(
+    end.getFullYear()+
+    (indication.condition==="Nuevo"?2:1)
+  );
+
+  document.getElementById("pvEnd").value=
+    end.toISOString().slice(0,10);
+}
+
+function savePrevalidation(){
+  const indication=
+    getSelectedIndication()||
+    getIndication(selectedAdminId);
+
+  const required=[
+    ["pvStart","Fecha Contrato"],
+    ["pvEnd","Fecha Expiración"],
+    ["pvReceiver","Nombre Receptor"],
+    ["pvAddress","Domicilio Receptor"],
+    ["pvRegion","Región"],
+    ["pvCommune","Comuna"],
+    ["pvRelationship","Parentesco"],
+    ["pvRut","RUT Receptor"],
+    ["pvPhone","Teléfono Receptor"]
+  ];
+
+  for(const item of required){
+    if(!document.getElementById(item[0]).value){
+      showMessage("Campo obligatorio: "+item[1]);
+      return;
+    }
+  }
+
+  const rut=
+    document.getElementById("pvRut").value
+      .replace(/\./g,"")
+      .trim();
+
+  if(!/^[0-9]{7,8}-?[0-9kK]$/.test(rut)){
+    showMessage(
+      "RUT receptor inválido. Ejemplo: 12345678-9."
+    );
+    return;
+  }
+
+  indication.contract={
+    start:document.getElementById("pvStart").value,
+    end:document.getElementById("pvEnd").value,
+    receiver:document.getElementById("pvReceiver").value,
+    receiverRut:document.getElementById("pvRut").value,
+    address:document.getElementById("pvAddress").value,
+    region:document.getElementById("pvRegion").value,
+    commune:document.getElementById("pvCommune").value,
+    relationship:document.getElementById("pvRelationship").value,
+    phone:document.getElementById("pvPhone").value,
+    notes:document.getElementById("pvNotes").value
+  };
+
+  indication.contractState="EMITIDO";
+  indication.finState="ENTREGADO";
+  indication.state="Finalizada";
+  indication.deliveryDate=indication.contract.start;
+
+  if((DB.stockLocal[indication.type]||0)>0){
+    DB.stockLocal[indication.type]--;
+  }
+
+  persist();
+  closeMain();
+
+  renderIndications();
+  renderAdmin();
+  renderStock();
+
+  showMessage(
+    "Datos guardados correctamente.",
+    function(){
+      openContract(indication);
+    }
+  );
+}
+
+function openContract(indication){
+  if(!indication.contract){
+    const end=new Date();
+    end.setFullYear(end.getFullYear()+2);
+
+    indication.contract={
+      start:today(),
+      end:end.toISOString().slice(0,10),
+      receiver:"María Puebla",
+      receiverRut:"12.345.678-9",
+      address:"Quebrada Herrera",
+      region:"Valparaíso",
+      commune:"San Felipe",
+      relationship:"MADRE",
+      phone:"930556151"
+    };
+  }
+
+  const patient=getPatient(indication.patientId);
+  const contract=indication.contract;
+
+  openMain(
+    "Contrato de Entrega de Ayuda Técnica",
+
+    '<div class="contract">'+
+      '<div style="text-align:right;font-size:10px">'+
+        'Fecha documento: '+new Date().toLocaleString()+
+      '</div>'+
+      '<h2 style="text-align:center;color:var(--red)">'+
+        'Contrato de Entrega de Ayuda Técnica'+
+      '</h2>'+
+      '<p>'+
+        'En '+contract.commune+', el Instituto Teletón hace entrega en calidad de '+
+        '<b>comodato</b> de la ayuda técnica <b>'+
+        indication.type.toLowerCase()+', '+indication.specs.join(", ")+
+        '</b>, al paciente <b>'+patient.name+'</b>, RUT <b>'+patient.rut+'</b>. '+
+        'La familia se compromete al buen uso, cuidado, mantención y devolución cuando corresponda.'+
+      '</p>'+
+      '<p>'+
+        '<b>Vigencia:</b> '+
+        formatDate(contract.start)+' al '+formatDate(contract.end)+'.'+
+      '</p>'+
+      '<p>'+
+        '<b>Representante Legal:</b> '+
+        contract.receiver+', RUT '+contract.receiverRut+
+      '</p>'+
+      '<div class="signature">'+
+        '<b>Firma Tutor</b>'+
+        '<div class="signature-line"></div>'+
+        '<b>'+contract.receiver+'</b>'+
+        '<div class="success">'+
+          'Firmado electrónicamente (FES) — '+new Date().toLocaleString()+
+          '<br>Firma electrónica simple registrada automáticamente'+
+        '</div>'+
+      '</div>'+
+      '<div style="text-align:center">'+
+        '<label>Correo destinatario</label>'+
+        '<input id="contractMail" style="width:300px;display:inline-block" placeholder="correo@ejemplo.com">'+
+      '</div>'+
+    '</div>',
+
+    '<button class="btn red" onclick="window.print()">Imprimir</button> '+
+    '<button class="btn blue" onclick="sendContract()">Enviar</button> '+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button>',
+
+    "large"
+  );
+}
+
+function sendContract(){
+  const mail=document.getElementById("contractMail").value.trim();
+
+  if(!mail||!mail.includes("@")){
+    showMessage("Ingrese un correo destinatario válido.");
+    return;
+  }
+
+  showMessage("Contrato enviado a "+mail+".");
+}
+
+/* ================================================================
+   DEVOLUCIÓN
+================================================================ */
+function monthsSince(dateStr){
+  if(!dateStr) return null;
+  const from=new Date(dateStr);
+  if(isNaN(from)) return null;
+  const now=new Date();
+  return (now.getFullYear()-from.getFullYear())*12+
+    (now.getMonth()-from.getMonth());
+}
+
+function openReturn(){
+  const indication=getIndication(selectedAdminId);
+
+  if(!indication){
+    return;
+  }
+
+  if(indication.type!=="Silla de ruedas"){
+    showMessage(
+      "Sólo las sillas de ruedas se devuelven. "+
+      "Este artículo ("+indication.type+") no admite devolución."
+    );
+    return;
+  }
+
+  if(indication.contractState!=="EMITIDO"){
+    showMessage(
+      "La devolución se habilita sólo cuando el contrato está EMITIDO."
+    );
+    return;
+  }
+
+  if(indication.finState==="DEVUELTO"){
+    showMessage("Esta silla de ruedas ya fue devuelta.");
+    return;
+  }
+
+  const months=monthsSince(
+    indication.deliveryDate||indication.contract&&indication.contract.start
+  );
+  const eligible=months!==null&&months>=24;
+
+  const antiquity=
+    months===null
+    ?"Sin fecha de entrega registrada"
+    :Math.floor(months/12)+" año(s) y "+(months%12)+" mes(es) de uso";
+
+  openMain(
+    "Devolución de Silla de Ruedas",
+
+    '<div class="note" style="margin-bottom:8px">'+
+      '<b>Antigüedad:</b> '+antiquity+'<br>'+
+      (
+        eligible
+        ?'<span style="color:#2e7d32;font-weight:bold">'+
+          'Cumple más de 2 años: se puede entregar una nueva silla de ruedas.'+
+         '</span>'
+        :'<span style="color:#d32f2f;font-weight:bold">'+
+          'Menos de 2 años: requiere autorización especial para entregar una nueva.'+
+         '</span>'
+      )+
+    '</div>'+
+
+    '<label>Artículo</label>'+
+    '<input id="returnArticle" value="'+indication.type+'" readonly>'+
+
+    '<label class="required" style="margin-top:7px">'+
+      'N° de serie'+
+    '</label>'+
+    '<input id="returnSerial">'+
+
+    '<label style="margin-top:7px">Cantidad</label>'+
+    '<input type="number" id="returnQuantity" value="1" min="1">'+
+
+    (
+      eligible
+      ?''
+      :'<label class="required" style="margin-top:7px">'+
+         'Autorización especial (menos de 2 años)'+
+       '</label>'+
+       '<input id="returnAuthCode" placeholder="N° resolución / autoriza">'
+    )+
+
+    '<label class="required" style="margin-top:7px">'+
+      'Observaciones'+
+    '</label>'+
+    '<textarea id="returnNotes" rows="4"></textarea>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="saveReturn('+(eligible?"true":"false")+')">'+
+      'Registrar devolución'+
+    '</button>',
+
+    "small"
+  );
+}
+
+function saveReturn(eligible){
+  const serial=document.getElementById("returnSerial").value.trim();
+  const notes=document.getElementById("returnNotes").value.trim();
+  const authField=document.getElementById("returnAuthCode");
+  const auth=authField?authField.value.trim():"";
+
+  if(!serial||!notes){
+    showMessage(
+      "N° de serie y observaciones son obligatorios."
+    );
+    return;
+  }
+
+  if(!eligible&&!auth){
+    showMessage(
+      "La silla tiene menos de 2 años: debe registrar la autorización especial."
+    );
+    return;
+  }
+
+  const indication=getIndication(selectedAdminId);
+
+  indication.finState="DEVUELTO";
+  indication.returnEligibleNew=!!eligible;
+  indication.returnAuthorization=auth||"";
+
+  DB.articles.unshift({
+    code:serial,
+    type:indication.type,
+    description:indication.type+" (devolución)",
+    state:"EN DEVOLUCIÓN",
+    substate:"En proceso",
+    location:
+      indication.target==="TERAPIA OCUPACIONAL"
+      ?"COMODATO TERAPIA"
+      :"COMODATO KINESIOLOGÍA",
+    returnedPatientId:indication.patientId,
+    returnedIndicationId:indication.id,
+    returnedDate:today(),
+    availableForDelivery:false
+  });
+
+  DB.articleHistory[serial]=(DB.articleHistory[serial]||[]).concat([{
+    correlative:Math.floor(Math.random()*90000),
+    state:"EN DEVOLUCIÓN",
+    date:new Date().toLocaleString(),
+    warehouse:
+      eligible
+      ?"DEVOLUCIÓN (>2 años, habilita nueva)"
+      :"DEVOLUCIÓN (<2 años, autoriz. "+auth+")",
+    user:"cesar.jimenez"
+  }]);
+
+  persist();
+  closeMain();
+
+  renderAdmin();
+  renderArticles();
+
+  showMessage(
+    "Devolución registrada. Estado FIN700 actualizado a DEVUELTO."
+  );
+}
+
+/* ================================================================
+   MANTENCIÓN
+================================================================ */
+function isArticleAvailableForDelivery(article){
+  return article.state==="DISPONIBLE USADO" && article.availableForDelivery!==false;
+}
+
+function openReturnedAvailable(){
+  const available=DB.articles.filter(article=>
+    article.type==="Silla de ruedas" &&
+    article.state==="DISPONIBLE USADO" &&
+    isArticleAvailableForDelivery(article)
+  );
+
+  let html='<div style="margin-bottom:12px">'+
+    '<h2 style="color:#1b5e20;font-size:18px;margin:0">♻️ Sillas devueltas / disponibles usadas</h2>'+
+    '<div class="small" style="margin-top:4px">Sillas recuperadas de un comodato y habilitadas para una nueva entrega.</div>'+
+    '</div>';
+
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:12px">'+
+    '<div style="background:#fff;padding:12px;border-radius:6px;border-left:3px solid #2e7d32"><div class="small">DISPONIBLES PARA ENTREGA</div><div style="font-size:26px;font-weight:700;color:#2e7d32">'+available.length+'</div></div>'+
+    '</div>';
+
+  html+='<div style="overflow:auto;background:#fff;border-radius:7px;border:1px solid #eee"><table><thead><tr>'+ 
+    '<th>Código</th><th>Modelo / descripción</th><th>Paciente que devolvió</th><th>Fecha devolución</th><th>Ubicación</th><th>Estado</th><th>Acción</th>'+ 
+    '</tr></thead><tbody>';
+
+  if(!available.length){
+    html+='<tr><td colspan="7" class="empty">No existen sillas devueltas disponibles para una nueva entrega.</td></tr>';
+  }else{
+    available.forEach(article=>{
+      const patient=article.returnedPatientId?getPatient(article.returnedPatientId):null;
+      const patientName=patient?patient.name:'No informado';
+      html+='<tr>'+
+        '<td><b>'+article.code+'</b></td>'+ 
+        '<td>'+article.description+'</td>'+ 
+        '<td>'+patientName+'</td>'+ 
+        '<td>'+formatDate(article.returnedDate||article.availableSince||'')+'</td>'+ 
+        '<td>'+article.location+'</td>'+ 
+        '<td>'+articleStateHtml(article)+'</td>'+ 
+        '<td><button class="mini blue" onclick="openArticleHistory(\''+article.code+'\');closeMain()">Ver detalle</button></td>'+ 
+      '</tr>';
+    });
+  }
+  html+='</tbody></table></div>';
+
+  openMain('Sillas devueltas / disponibles usadas',html,
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button>', 'large');
+}
+
+function renderArticles(){
+  const state=document.getElementById("articleState").value;
+  const location=document.getElementById("articleLocation").value;
+  const code=document.getElementById("articleCode")
+    .value.trim().toLowerCase();
+
+  const list=DB.articles.filter(article=>
+    (state==="Todos"||article.state===state)&&
+    (location==="Todas"||article.location===location)&&
+    (!code||article.code.toLowerCase().includes(code))
+  );
+
+  document.getElementById("articlesBody").innerHTML=
+    list.length
+    ?list.map(article=>
+      '<tr>'+
+        '<td>'+article.code+'</td>'+
+        '<td>'+article.description+'</td>'+
+        '<td>'+articleStateHtml(article)+'</td>'+
+        '<td>'+article.location+'</td>'+
+        '<td>'+
+          (
+            article.state==="EN DEVOLUCIÓN"&&currentProfile==="TI"
+            ?'<button class="mini blue" onclick="openArticleState(\''+article.code+'\')">'+
+               'Cambiar estado'+
+             '</button> '
+            :""
+          )+
+          '<button class="mini red-outline" onclick="openArticleHistory(\''+article.code+'\')">'+
+            'Ver detalle'+
+          '</button>'+
+        '</td>'+
+      '</tr>'
+    ).join("")
+    :'<tr><td colspan="5" class="empty">'+
+      'Sin artículos para los filtros aplicados.'+
+    '</td></tr>';
+}
+
+function articleStateHtml(article){
+  const classes={
+    "EN DEVOLUCIÓN":"state-return",
+    "DONADO":"state-donated",
+    "PARA BAJA":"state-low",
+    "PARA RECICLAJE":"state-recycle",
+    "DISPONIBLE USADO":"state-used"
+  };
+
+  const availability=
+    article.state==="DISPONIBLE USADO"
+    ?'<span class="subtext" style="color:#1b5e20;font-weight:bold">✓ Disponible para entrega</span>'
+    :'';
+
+  return '<span class="state-chip '+(classes[article.state]||"")+'">'+
+    article.state+
+  '</span>'+
+  '<span class="subtext">'+article.substate+'</span>'+
+  availability;
+}
+
+function clearArticleFilters(){
+  document.getElementById("articleState").selectedIndex=0;
+  document.getElementById("articleLocation").selectedIndex=0;
+  document.getElementById("articleCode").value="";
+
+  renderArticles();
+}
+
+function openArticleState(code){
+  selectedArticleCode=code;
+
+  const article=DB.articles.find(item=>item.code===code);
+
+  openMain(
+    "Datos devolución / cambio estado",
+
+    '<div><b>Artículo:</b> '+article.code+' - '+article.description+'</div>'+
+
+    '<div class="grid g2" style="margin-top:8px">'+
+      '<div>'+
+        '<label class="required">Fecha devolución</label>'+
+        '<input type="date" id="articleChangeDate" value="'+today()+'">'+
+      '</div>'+
+      '<div>'+
+        '<label class="required">Estado del artículo</label>'+
+        '<select id="articleNewState">'+
+          '<option>DISPONIBLE USADO</option>'+
+          '<option>PARA BAJA</option>'+
+          '<option>DONACIÓN</option>'+
+        '</select>'+
+      '</div>'+
+    '</div>'+
+
+    '<label style="margin-top:7px">Comentarios</label>'+
+    '<textarea id="articleComments" rows="3"></textarea>',
+
+    '<button class="btn gray" onclick="closeMain()">Cancelar</button> '+
+    '<button class="btn green" onclick="saveArticleState()">Guardar cambio</button>',
+
+    "small"
+  );
+}
+
+function saveArticleState(){
+  const article=DB.articles.find(
+    item=>item.code===selectedArticleCode
+  );
+
+  const date=document.getElementById("articleChangeDate").value;
+  const newState=document.getElementById("articleNewState").value;
+
+  if(!date){
+    showMessage("Fecha devolución obligatoria.");
+    return;
+  }
+
+  article.state=
+    newState==="DONACIÓN"
+    ?"DONADO"
+    :newState;
+
+  article.substate=
+    newState==="DONACIÓN"
+    ?"Donación"
+    :newState==="PARA BAJA"
+      ?"En proceso"
+      :"Comodato Terapia";
+
+  if(newState==="DONACIÓN"){
+    article.location="DONACIÓN";
+  }
+
+  if(!DB.articleHistory[article.code]){
+    DB.articleHistory[article.code]=[];
+  }
+
+  DB.articleHistory[article.code].push({
+    correlative:Math.floor(Math.random()*90000),
+    state:article.state,
+    date:new Date().toLocaleString(),
+    warehouse:"BODEGA "+article.location,
+    user:"cesar.jimenez"
+  });
+
+  if(newState==="DISPONIBLE USADO"){
+    // El artículo vuelve al inventario reutilizable y queda disponible
+    // para ser asignado/entregado a otro paciente.
+    DB.stockLocal[article.type]=
+      (DB.stockLocal[article.type]||0)+1;
+
+    article.availableForDelivery=true;
+    article.availableSince=date;
+    article.returnedDate=article.returnedDate||date;
+    article.assignedPatientId=null;
+    article.assignedIndicationId=null;
+    article.assignmentState="DISPONIBLE PARA ENTREGA";
+
+    // Si existe una indicación en lista de espera del mismo tipo,
+    // el stock liberado la deja abastecible, sin asignar todavía el artículo.
+    const waiting=DB.indications.find(
+      indication=>
+        indication.type===article.type&&
+        indication.state==="Lista de Espera"&&
+        !indication.stockReady&&
+        indication.usedChairRequested
+    ) || DB.indications.find(
+      indication=>
+        indication.type===article.type&&
+        indication.state==="Lista de Espera"&&
+        !indication.stockReady
+    );
+
+    if(waiting){
+      waiting.stockReady=true;
+      waiting.finState="SOLICITUD DE CONSUMO";
+    }
+  } else {
+    // Al dejar de estar disponible, el artículo ya no puede ser
+    // entregado a un nuevo paciente.
+    article.availableForDelivery=false;
+    article.availableSince="";
+    article.assignmentState="NO DISPONIBLE";
+  }
+
+  persist();
+  closeMain();
+
+  renderArticles();
+  renderAdmin();
+  renderStock();
+
+  showMessage(
+    "Cambio de estado registrado correctamente."
+  );
+}
+
+function openArticleHistory(code){
+  const history=DB.articleHistory[code]||[];
+
+  openMain(
+    "Historial artículo",
+
+    '<div class="small">'+
+      'Historial para artículo <b>'+code+'</b>'+
+    '</div>'+
+
+    '<table>'+
+      '<thead>'+
+        '<tr>'+
+          '<th>Correlativo</th>'+
+          '<th>Estado</th>'+
+          '<th>Fecha</th>'+
+          '<th>Bodega</th>'+
+          '<th>Usuario</th>'+
+        '</tr>'+
+      '</thead>'+
+      '<tbody>'+
+        (
+          history.length
+          ?history.map(item=>
+            '<tr>'+
+              '<td>'+item.correlative+'</td>'+
+              '<td>'+item.state+'</td>'+
+              '<td>'+item.date+'</td>'+
+              '<td>'+item.warehouse+'</td>'+
+              '<td>'+item.user+'</td>'+
+            '</tr>'
+          ).join("")
+          :'<tr><td colspan="5" class="empty">Sin movimientos.</td></tr>'
+        )+
+      '</tbody>'+
+    '</table>',
+
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button>',
+
+    "large"
+  );
+}
+
+/* ================================================================
+   STOCK / FIN700
+================================================================ */
+function nextFin700Number(){
+  if(!DB.nextFin700)DB.nextFin700=700481;
+  return "FIN700-"+(DB.nextFin700++);
+}
+
+function logWs(direction,endpoint,payload){
+  if(!DB.wsLog)DB.wsLog=[];
+  const now=new Date();
+  DB.wsLog.unshift({
+    time:
+      String(now.getHours()).padStart(2,"0")+":"+
+      String(now.getMinutes()).padStart(2,"0")+":"+
+      String(now.getSeconds()).padStart(2,"0"),
+    direction:direction,
+    endpoint:endpoint,
+    payload:payload
+  });
+  DB.wsLog=DB.wsLog.slice(0,30);
+}
+
+function createOrder(type,indication){
+  const fin700=nextFin700Number();
+
+  const order={
+    number:DB.nextOrder++,
+    fin700:fin700,
+    type:type,
+    product:PRODUCT_CODES[indication.type],
+    item:indication.type,
+    indicationId:indication.id,
+    date:today(),
+    state:type==="CON"
+      ?"SOLICITUD DE CONSUMO"
+      :"Pendiente"
+  };
+
+  DB.orders.push(order);
+
+  indication.fin700Order=fin700;
+
+  logWs(
+    "OUTBOUND_REQUEST",
+    "/api/fin700/v1/solicitud-articulos",
+    {
+      event:type==="TRA"
+        ?"SOLICITUD_TRASPASO"
+        :type==="COM"
+          ?"SOLICITUD_COMPRA"
+          :"SOLICITUD_CONSUMO",
+      numeroFin700:fin700,
+      correlativoSIC:indication.id,
+      articulo:indication.type,
+      codigoArticulo:PRODUCT_CODES[indication.type],
+      cantidad:1,
+      estadoSIC:indication.state
+    }
+  );
+
+  return order;
+}
+
+function renderWaitList(){
+  const rows=DB.indications.filter(indication=>
+    indication.state==="Lista de Espera"
+  );
+
+  document.getElementById("waitBody").innerHTML=
+    rows.length
+    ?rows.map(indication=>{
+      const order=DB.orders.find(item=>
+        item.indicationId===indication.id&&
+        (item.type==="TRA"||item.type==="COM")
+      );
+      const fin700=indication.fin700Order||(order&&order.fin700)||"—";
+      return '<tr>'+
+        '<td>'+indication.id+'</td>'+
+        '<td>'+((getPatient(indication.patientId)||{}).name||"—")+'</td>'+
+        '<td>'+indication.type+'</td>'+
+        '<td><b>'+fin700+'</b></td>'+
+        '<td>'+(order?order.type:"—")+'</td>'+
+        '<td>'+(indication.finState||"—")+'</td>'+
+        '<td>'+
+          (order&&order.state==="Pendiente"
+            ?'<button class="mini blue" onclick="respondFin700('+order.number+')">'+
+               'Abastecer desde FIN700'+
+             '</button>'
+            :'<span class="small">Stock abastecido</span>')+
+        '</td>'+
+      '</tr>';
+    }).join("")
+    :'<tr><td colspan="7" class="empty">Sin pacientes en lista de espera.</td></tr>';
+}
+
+function renderWsLog(){
+  const log=DB.wsLog||[];
+
+  document.getElementById("wsLog").innerHTML=
+    log.length
+    ?log.map(entry=>
+      '<div style="border:1px solid #d5dae2;border-radius:6px;margin-bottom:8px">'+
+        '<div style="padding:6px 9px;font-weight:700">'+
+          '['+entry.time+'] '+entry.direction+' '+entry.endpoint+
+        '</div>'+
+        '<pre style="margin:0;padding:10px;background:#1e1e1e;color:#4ade80;'+
+          'overflow:auto;font-size:12px">'+
+          JSON.stringify(entry.payload,null,2)+
+        '</pre>'+
+      '</div>'
+    ).join("")
+    :'<div class="small">Sin transacciones registradas.</div>';
+}
+
+/* Simula el callback inbound del ERP FIN700 sobre la solicitud
+   pendiente más antigua (abastecimiento real de la lista de espera). */
+function simulateInbound(){
+  const order=DB.orders.find(item=>item.state==="Pendiente");
+
+  if(!order){
+    showMessage("No existen solicitudes pendientes en FIN700.");
+    return;
+  }
+
+  respondFin700(order.number);
+}
+
+function renderStock(){
+  const types=Object.keys(PRODUCT_CODES);
+
+  document.getElementById("stockBody").innerHTML=
+    types.map(type=>
+      '<tr>'+
+        '<td>'+type+'</td>'+
+        '<td>'+PRODUCT_CODES[type]+'</td>'+
+        '<td><b>'+DB.stockLocal[type]+'</b></td>'+
+        '<td><b>'+DB.stockCentral[type]+'</b></td>'+
+        '<td>'+
+          '<button class="mini blue" onclick="receiveStock(\''+type+'\')">'+
+            'Recepcionar +1 local'+
+          '</button>'+
+        '</td>'+
+      '</tr>'
+    ).join("");
+
+  document.getElementById("ordersBody").innerHTML=
+    DB.orders.length
+    ?DB.orders.map(order=>
+      '<tr>'+
+        '<td>'+order.number+'</td>'+
+        '<td><b>'+(order.fin700||"—")+'</b></td>'+
+        '<td>'+order.type+'</td>'+
+        '<td>'+order.item+'</td>'+
+        '<td>'+order.indicationId+'</td>'+
+        '<td>'+formatDate(order.date)+'</td>'+
+        '<td>'+order.state+'</td>'+
+        '<td>'+
+          (order.state==="Pendiente"
+            ?'<button class="mini blue" onclick="respondFin700('+order.number+')">'+
+               'Recibir respuesta FIN700'+
+             '</button>'
+            :'<span class="small">'+(order.finResponse||"—")+'</span>')+
+        '</td>'+
+      '</tr>'
+    ).join("")
+    :'<tr><td colspan="8" class="empty">'+
+      'Sin pedidos generados.'+
+    '</td></tr>';
+
+  renderWaitList();
+  renderWsLog();
+}
+
+/* Simulación del webservice de respuesta de FIN700:
+   el ERP externo despacha los artículos solicitados y este sistema
+   los recepciona, abasteciendo el stock local. */
+function releaseWaitList(item){
+  /* Libera de la lista de espera sólo lo que el stock local puede cubrir,
+     priorizando la indicación más antigua. */
+  const pending=DB.indications
+    .filter(indication=>
+      indication.type===item&&
+      indication.state==="Lista de Espera"&&
+      !indication.stockReady
+    )
+    .sort((a,b)=>a.id-b.id);
+
+  let available=DB.stockLocal[item]||0;
+  const released=[];
+
+  pending.forEach(indication=>{
+    if(available>0){
+      available--;
+      indication.stockReady=true;
+      indication.finState="SOLICITUD DE CONSUMO";
+      released.push(indication);
+    }
+  });
+
+  return released;
+}
+
+function respondFin700(number){
+  const order=DB.orders.find(item=>item.number===Number(number));
+
+  if(!order)return;
+
+  order.state="Recepcionado";
+  order.finResponse=
+    "Despacho FIN700 · 1 unidad · "+formatDate(today())+
+    (order.fin700?" · "+order.fin700:"");
+
+  DB.stockLocal[order.item]=
+    (DB.stockLocal[order.item]||0)+1;
+
+  if(order.type==="TRA"){
+    DB.stockCentral[order.item]=
+      Math.max((DB.stockCentral[order.item]||0)-1,0);
+  }
+
+  const target=DB.indications.find(indication=>
+    indication.id===order.indicationId&&
+    indication.state==="Lista de Espera"
+  );
+
+  if(target&&!target.stockReady&&(DB.stockLocal[order.item]||0)>0){
+    target.stockReady=true;
+    target.finState="SOLICITUD DE CONSUMO";
+  }
+
+  const released=releaseWaitList(order.item);
+
+  if(target&&target.stockReady)released.unshift(target);
+
+  logWs(
+    "INBOUND_CALLBACK",
+    "/api/sic/v1/recepcion-stock",
+    {
+      event:"STOCK_DESPACHADO_POR_ERP",
+      numeroFin700:order.fin700||null,
+      correlativoSIC:order.indicationId,
+      articulo:order.item,
+      cantidad:1,
+      stockLocal:DB.stockLocal[order.item],
+      indicacionesLiberadas:released.map(indication=>indication.id)
+    }
+  );
+
+  persist();
+
+  renderStock();
+  renderAdmin();
+
+  showMessage(
+    "FIN700 respondió la solicitud "+(order.fin700||("N° "+order.number))+
+    " ("+order.type+"). Artículo recepcionado en stock local. "+
+    (released.length
+      ?"Indicaciones liberadas de <b>Lista de Espera</b>: "+
+        released.map(indication=>indication.id).join(", ")+"."
+      :"Sin indicaciones pendientes por liberar.")
+  );
+}
+
+function receiveStock(type){
+  DB.stockLocal[type]=
+    (DB.stockLocal[type]||0)+1;
+
+  const closed=DB.orders
+    .filter(order=>order.item===type&&order.state==="Pendiente")
+    .slice(0,1);
+
+  closed.forEach(order=>{
+    order.state="Recepcionado";
+    order.finResponse=
+      "Recepción manual · 1 unidad · "+formatDate(today())+
+      (order.fin700?" · "+order.fin700:"");
+  });
+
+  const released=releaseWaitList(type);
+
+  logWs(
+    "INBOUND_CALLBACK",
+    "/api/sic/v1/recepcion-stock",
+    {
+      event:"STOCK_RECEPCIONADO_MANUAL",
+      numeroFin700:closed.length?closed[0].fin700:null,
+      articulo:type,
+      cantidad:1,
+      stockLocal:DB.stockLocal[type],
+      indicacionesLiberadas:released.map(indication=>indication.id)
+    }
+  );
+
+  persist();
+
+  renderStock();
+  renderAdmin();
+
+  showMessage(
+    "Recepción registrada. "+
+    (released.length
+      ?"Indicaciones liberadas de <b>Lista de Espera</b>: "+
+        released.map(indication=>indication.id).join(", ")+"."
+      :"Sin indicaciones pendientes por liberar.")
+  );
+}
+
+/* ================================================================
+   EXPORTACIÓN
+================================================================ */
+function exportAdmin(){
+  const rows=[
+    [
+      "Id",
+      "Instituto",
+      "Médico",
+      "Evaluador",
+      "Paciente",
+      "Tipo AT",
+      "FIN700",
+      "Fecha",
+      "Estado indicación",
+      "Estado contrato",
+      "Estado FIN700"
+    ]
+  ];
+
+  DB.indications.forEach(indication=>{
+    const patient=getPatient(indication.patientId);
+
+    rows.push([
+      indication.id,
+      indication.origin,
+      indication.doctor,
+      indication.evaluator,
+      patient.id+" - "+patient.name,
+      indication.type,
+      indication.requestId,
+      indication.date,
+      indication.state,
+      indication.contractState,
+      indication.finState
+    ]);
+  });
+
+  exportCsv(
+    rows,
+    "administrador_ayudas_tecnicas.csv"
+  );
+}
+
+function exportArticles(){
+  const rows=[
+    ["Código","Descripción","Estado","Ubicación"]
+  ];
+
+  DB.articles.forEach(article=>{
+    rows.push([
+      article.code,
+      article.description,
+      article.state,
+      article.location
+    ]);
+  });
+
+  exportCsv(
+    rows,
+    "mantencion_articulos.csv"
+  );
+}
+
+function exportCsv(rows,fileName){
+  const csv=rows.map(
+    row=>row.map(
+      value=>'"'+String(value??"").replace(/"/g,'""')+'"'
+    ).join(";")
+  ).join("\n");
+
+  const link=document.createElement("a");
+
+  link.href=URL.createObjectURL(
+    new Blob(
+      ["\ufeff"+csv],
+      {type:"text/csv;charset=utf-8"}
+    )
+  );
+
+  link.download=fileName;
+  link.click();
+}
+
+/* ================================================================
+   FILTROS
+================================================================ */
+[
+  "adminInstitute",
+  "adminSpecialty",
+  "adminProfessional",
+  "adminType",
+  "adminContract",
+  "adminState",
+  "adminFin",
+  "adminFrom",
+  "adminTo"
+].forEach(id=>{
+  document.getElementById(id)
+    .addEventListener("change",renderAdmin);
+});
+
+[
+  "articleState",
+  "articleLocation"
+].forEach(id=>{
+  document.getElementById(id)
+    .addEventListener("change",renderArticles);
+});
+
+document.getElementById("articleCode")
+  .addEventListener("input",renderArticles);
+
+/* ================================================================
+   INICIALIZACIÓN
+================================================================ */
+fillSelect(
+  "adminInstitute",
+  ["SANTIAGO","VALPARAISO","CONCEPCIÓN","ARICA","COQUIMBO"],
+  "Todos"
+);
+
+fillSelect(
+  "adminProfessional",
+  ["Diego Rocha","Tapia Soto Claudia","García Pastén Verónica"],
+  "Todos"
+);
+
+document.getElementById("agendaDate").value=today();
+document.getElementById("perfil").value=currentProfile;
+
+currentPatientId=101020;
+
+document.getElementById("searchInput").value=
+  getCurrentPatient().name;
+
+function resetDB(e){
+  e.stopPropagation();
+  if(!confirm("Limpiar base de datos y recargar ejemplos?")){return;}
+  localStorage.removeItem("teleton-ayudas-tecnicas-final-v3");
+  location.reload();
+}
+
+function toggleWallboard(){
+  document.getElementById("wallboard").classList.toggle("show");
+}
+
+function showReport(type){
+  const titles={
+    espera:"📋 Demanda lista espera",
+    listaespera:"📋 Lista espera",
+    disponibles:"📦 Artículos disponibles",
+    porbodega:"📦 Artículos por bodega",
+    tallerlist:"📋 Lista espera taller",
+    anulaciones:"❌ Anulaciones",
+    historico:"📚 Histórico indicaciones",
+    demandans:"📋 Demanda N/S",
+    disponible:"✓ Disponible",
+    auditoria:"🔍 Auditoría"
+  };
+  const desc={
+    espera:"Indicaciones pendientes por falta de disponibilidad, con trazabilidad de paciente, indicación, profesional e instituto.",
+    listaespera:"Detalle operativo de pacientes e indicaciones actualmente en lista de espera.",
+    disponibles:"Existencias locales disponibles para atender indicaciones.",
+    porbodega:"Existencias agrupadas por ubicación de bodega.",
+    tallerlist:"Indicaciones que requieren gestión de taller/mantención.",
+    anulaciones:"Indicaciones anuladas y su trazabilidad.",
+    historico:"Consulta histórica de indicaciones con datos clínicos-operativos y responsables.",
+    demandans:"Demanda sin stock disponible, identificando artículo e instituto.",
+    disponible:"Indicaciones finalizadas y entregadas.",
+    auditoria:"Trazabilidad de comunicaciones con FIN700."
+  };
+
+  if(type==="auditoria"){
+    renderReportAudit();
+    return;
+  }
+  if(type==="disponibles"){
+    renderReportStock(type);
+    return;
+  }
+  if(type==="porbodega"){
+    renderReportStock(type);
+    return;
+  }
+
+  const base=DB.indications.map(ind=>{
+    const pat=getPatient(ind.patientId)||{};
+    return {
+      ind,pat,
+      institute:ind.origin||pat.institute||"",
+      professional:ind.doctor||"",
+      evaluator:ind.evaluator||"",
+      date:ind.date||"",
+      delivery:ind.deliveryDate||"",
+      type:ind.type||"",
+      state:ind.state||"",
+      contract:ind.contractState||"",
+      fin:ind.finState||""
+    };
+  });
+
+  let rows=base;
+  if(type==="espera"||type==="listaespera"||type==="demandans") rows=rows.filter(x=>x.state==="Lista de Espera");
+  if(type==="anulaciones") rows=rows.filter(x=>x.state==="Anulada");
+  if(type==="disponible") rows=rows.filter(x=>x.state==="Finalizada");
+  if(type==="tallerlist") rows=rows.filter(x=>x.state==="Lista de Espera" || /taller|mantenci/i.test(x.ind.observations||""));
+  renderOperationalReport(type,titles[type]||"Informe",desc[type]||"",rows);
+}
+
+function reportEsc(v){
+  return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function reportDate(v){
+  return v ? formatDate(v) : "—";
+}
+function reportSelect(id,label,options,allText){
+  let h='<div><label>'+label+'</label><select id="'+id+'"><option value="">'+(allText||"Todos")+'</option>';
+  options.forEach(o=>h+='<option value="'+reportEsc(o)+'">'+reportEsc(o)+'</option>');
+  return h+'</select></div>';
+}
+function uniqueReport(arr,key){
+  return [...new Set(arr.map(x=>x[key]).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es'));
+}
+
+function renderOperationalReport(type,title,description,allRows){
+  const institutes=uniqueReport(allRows,"institute");
+  const professionals=uniqueReport(allRows,"professional");
+  const evaluators=uniqueReport(allRows,"evaluator");
+  const states=uniqueReport(allRows,"state");
+  const types=uniqueReport(allRows,"type");
+  const container=document.getElementById("reportContent");
+  let html='<div class="report-shell">';
+  html+='<div class="report-header"><div><h2>'+title+'</h2><div class="small">'+description+'</div></div><div><button class="btn blue" onclick="exportCurrentReport()">⬇ Exportar CSV</button></div></div>';
+  html+='<div class="report-filters"><div class="report-filter-grid">';
+  html+='<div><label>N° indicación</label><input id="rfInd" placeholder="Ej. 71001"></div>';
+  html+=reportSelect("rfInstitute","Instituto",institutes);
+  html+=reportSelect("rfProfessional","Profesional que indicó",professionals);
+  html+=reportSelect("rfEvaluator","Profesional que evaluó",evaluators);
+  html+=reportSelect("rfType","Tipo ayuda técnica",types);
+  html+=reportSelect("rfState","Estado indicación",states);
+  html+='<div><label>Fecha desde</label><input id="rfFrom" type="date"></div>';
+  html+='<div><label>Fecha hasta</label><input id="rfTo" type="date"></div>';
+  html+='</div><div class="report-filter-actions"><button class="btn gray" onclick="clearReportFilters()">Limpiar</button><button class="btn green" onclick="applyOperationalReport()">Aplicar filtros</button></div></div>';
+  html+='<div id="reportResultArea"></div></div>';
+  container.innerHTML=html;
+  window.currentReport={type,title,description,allRows,rows:allRows};
+  renderReportRows(allRows);
+}
+
+function applyOperationalReport(){
+  const cfg=window.currentReport;if(!cfg)return;
+  const ind=(document.getElementById("rfInd").value||"").trim().toLowerCase();
+  const institute=document.getElementById("rfInstitute").value;
+  const professional=document.getElementById("rfProfessional").value;
+  const evaluator=document.getElementById("rfEvaluator").value;
+  const typ=document.getElementById("rfType").value;
+  const state=document.getElementById("rfState").value;
+  const from=document.getElementById("rfFrom").value;
+  const to=document.getElementById("rfTo").value;
+  cfg.rows=cfg.allRows.filter(x=>
+    (!ind || String(x.ind.id).toLowerCase().includes(ind)) &&
+    (!institute || x.institute===institute) &&
+    (!professional || x.professional===professional) &&
+    (!evaluator || x.evaluator===evaluator) &&
+    (!typ || x.type===typ) &&
+    (!state || x.state===state) &&
+    (!from || x.date>=from) &&
+    (!to || x.date<=to)
+  );
+  renderReportRows(cfg.rows);
+}
+
+function clearReportFilters(){
+  ["rfInd","rfInstitute","rfProfessional","rfEvaluator","rfType","rfState","rfFrom","rfTo"].forEach(id=>{
+    const e=document.getElementById(id);if(e)e.value="";
+  });
+  if(window.currentReport){window.currentReport.rows=window.currentReport.allRows;renderReportRows(window.currentReport.rows);}
+}
+
+function renderReportRows(rows){
+  const area=document.getElementById("reportResultArea");if(!area)return;
+  const total=rows.length;
+  const institutes=new Set(rows.map(x=>x.institute).filter(Boolean)).size;
+  const professionals=new Set(rows.map(x=>x.professional).filter(Boolean)).size;
+  const delivered=rows.filter(x=>x.delivery).length;
+  const waiting=rows.filter(x=>x.state==="Lista de Espera").length;
+  let h='<div class="report-kpis">';
+  [["Registros",total],["Institutos",institutes],["Profesionales",professionals],["En espera",waiting],["Con entrega",delivered]].forEach((k,i)=>h+='<div class="report-kpi"><span>'+k[0]+'</span><b>'+k[1]+'</b></div>');
+  h+='</div>';
+  if(!rows.length){area.innerHTML=h+'<div class="report-empty">No existen registros con los filtros seleccionados.</div>';return;}
+  h+='<div class="report-table"><div class="report-toolbar"><span class="count">'+total+' registro(s) encontrados</span><span class="small">Los datos corresponden a las indicaciones cargadas en el prototipo.</span></div>';
+  h+='<table><thead><tr><th>N° indicación</th><th>Instituto</th><th>Paciente</th><th>Ficha</th><th>Profesional que indicó</th><th>Evaluador</th><th>Tipo ayuda técnica</th><th>Fecha indicación</th><th>Fecha evaluación</th><th>Estado</th><th>Contrato</th><th>FIN700</th><th>Fecha entrega</th><th>Detalle</th></tr></thead><tbody>';
+  rows.slice().sort((a,b)=>b.date.localeCompare(a.date)).forEach(x=>{
+    const pat=x.pat||{},ind=x.ind;
+    h+='<tr>';
+    h+='<td><b>'+reportEsc(ind.id)+'</b></td>';
+    h+='<td>'+reportEsc(x.institute)+'</td>';
+    h+='<td>'+reportEsc(pat.name||"—")+'</td>';
+    h+='<td>'+reportEsc(pat.id||"—")+'</td>';
+    h+='<td>'+reportEsc(x.professional||"—")+'</td>';
+    h+='<td>'+reportEsc(x.evaluator||"—")+'</td>';
+    h+='<td>'+reportEsc(x.type)+'</td>';
+    h+='<td>'+reportDate(x.date)+'</td>';
+    h+='<td>'+reportDate(ind.evaluationDate)+'</td>';
+    h+='<td><span class="badge '+reportStateClass(x.state)+'">'+reportEsc(x.state)+'</span></td>';
+    h+='<td>'+reportEsc(x.contract||"—")+'</td>';
+    h+='<td>'+reportEsc(x.fin||"—")+'</td>';
+    h+='<td>'+reportDate(x.delivery)+'</td>';
+    h+='<td><span class="report-detail" onclick="openReportDetail('+ind.id+')">Ver</span></td>';
+    h+='</tr>';
+  });
+  h+='</tbody></table></div>';
+  area.innerHTML=h;
+}
+function reportStateClass(s){
+  if(s==="Finalizada")return"green";
+  if(s==="Lista de Espera")return"red";
+  if(s==="Anulada")return"gray";
+  if(s==="Evaluada")return"blue";
+  if(s==="Chequeo conforme")return"cyan";
+  return"orange";
+}
+function openReportDetail(id){
+  const ind=DB.indications.find(i=>String(i.id)===String(id));if(!ind)return;
+  const pat=getPatient(ind.patientId)||{};
+  const body='<div class="report-section"><h3>Identificación</h3><div class="report-summary-grid">'+
+    '<div class="report-summary"><span>N° indicación</span><strong>'+reportEsc(ind.id)+'</strong></div>'+
+    '<div class="report-summary"><span>Paciente</span><strong>'+reportEsc(pat.name||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Ficha</span><strong>'+reportEsc(pat.id||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>RUT</span><strong>'+reportEsc(pat.rut||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Instituto</span><strong>'+reportEsc(ind.origin||pat.institute||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Tipo ayuda técnica</span><strong>'+reportEsc(ind.type)+'</strong></div>'+
+    '</div></div>'+
+    '<div class="report-section"><h3>Responsables y fechas</h3><div class="report-summary-grid">'+
+    '<div class="report-summary"><span>Profesional que indicó</span><strong>'+reportEsc(ind.doctor||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Evaluador</span><strong>'+reportEsc(ind.evaluator||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Fecha indicación</span><strong>'+reportDate(ind.date)+'</strong></div>'+
+    '<div class="report-summary"><span>Fecha evaluación</span><strong>'+reportDate(ind.evaluationDate)+'</strong></div>'+
+    '<div class="report-summary"><span>Fecha entrega</span><strong>'+reportDate(ind.deliveryDate)+'</strong></div>'+
+    '<div class="report-summary"><span>Estado</span><strong>'+reportEsc(ind.state)+'</strong></div>'+
+    '</div></div>'+
+    '<div class="report-section"><h3>Trazabilidad operativa</h3><div class="report-summary-grid">'+
+    '<div class="report-summary"><span>Solicitud FIN700</span><strong>'+reportEsc(ind.requestId||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Orden FIN700</span><strong>'+reportEsc(ind.fin700Order||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Estado FIN700</span><strong>'+reportEsc(ind.finState||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Estado contrato</span><strong>'+reportEsc(ind.contractState||"—")+'</strong></div>'+
+    '<div class="report-summary"><span>Stock disponible</span><strong>'+(ind.stockReady?"Sí":"No")+'</strong></div>'+
+    '<div class="report-summary"><span>Observaciones</span><strong>'+reportEsc(ind.observations||"—")+'</strong></div>'+
+    '</div></div>';
+  document.getElementById("mainTitle").textContent="Detalle de indicación "+ind.id;
+  document.getElementById("mainBody").innerHTML=body;
+  document.getElementById("mainFoot").innerHTML='<button class="btn gray" onclick="closeMain()">Cerrar</button>';
+  document.getElementById("mainOverlay").classList.add("show");
+}
+function exportCurrentReport(){
+  const cfg=window.currentReport;if(!cfg||!cfg.rows)return;
+  const headers=["N° indicación","Instituto","Paciente","Ficha","Profesional","Evaluador","Tipo ayuda técnica","Fecha indicación","Fecha evaluación","Estado","Contrato","FIN700","Fecha entrega"];
+  const lines=[headers,...cfg.rows.map(x=>[x.ind.id,x.institute,x.pat.name,x.pat.id,x.professional,x.evaluator,x.type,x.date,x.ind.evaluationDate||"",x.state,x.contract,x.fin,x.delivery])];
+  const csv=lines.map(r=>r.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(";")).join("\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="informe_ayudas_tecnicas.csv";a.click();URL.revokeObjectURL(a.href);
+}
+
+function renderReportStock(type){
+  const container=document.getElementById("reportContent");
+  const articles=Object.keys(DB.stockLocal||{});
+  let html='<div class="report-shell"><div class="report-header"><div><h2>'+ (type==="porbodega"?"🏢 Stock por bodega":"📦 Artículos disponibles") +'</h2><div class="small">Consulta de existencias utilizando el stock local actualmente cargado.</div></div></div>';
+  html+='<div class="report-filters"><div class="report-filter-grid"><div><label>Artículo</label><select id="stockFilter"><option value="">Todos</option>'+articles.map(a=>'<option>'+reportEsc(a)+'</option>').join("")+'</select></div><div><label>Stock</label><select id="stockOnly"><option value="">Todos</option><option value="yes">Disponible (> 0)</option><option value="no">Sin stock</option></select></div></div><div class="report-filter-actions"><button class="btn gray" onclick="showReport(\''+type+'\')">Restablecer</button><button class="btn green" onclick="applyStockReport(\''+type+'\')">Aplicar filtros</button></div></div><div id="stockResult"></div></div>';
+  container.innerHTML=html;window.currentStockReport={type,articles};renderStockReportRows(articles,type);
+}
+function applyStockReport(type){
+  const art=document.getElementById("stockFilter").value,only=document.getElementById("stockOnly").value;
+  let a=window.currentStockReport.articles.slice();
+  if(art)a=a.filter(x=>x===art);
+  if(only==="yes")a=a.filter(x=>(DB.stockLocal[x]||0)>0);
+  if(only==="no")a=a.filter(x=>(DB.stockLocal[x]||0)<=0);
+  renderStockReportRows(a,type);
+}
+function renderStockReportRows(articles,type){
+  const area=document.getElementById("stockResult");if(!area)return;
+  const total=articles.reduce((n,a)=>n+(DB.stockLocal[a]||0),0);
+  let h='<div class="report-kpis"><div class="report-kpi"><span>Tipos de artículo</span><b>'+articles.length+'</b></div><div class="report-kpi"><span>Unidades</span><b>'+total+'</b></div><div class="report-kpi"><span>Con stock</span><b>'+articles.filter(a=>(DB.stockLocal[a]||0)>0).length+'</b></div></div>';
+  h+='<div class="report-table"><table><thead><tr><th>Artículo</th><th>Código</th><th>Stock local</th><th>Estado</th></tr></thead><tbody>';
+  articles.forEach(a=>{const q=DB.stockLocal[a]||0;h+='<tr><td>'+reportEsc(a)+'</td><td>'+reportEsc(PRODUCT_CODES[a]||"—")+'</td><td><b>'+q+'</b></td><td><span class="badge '+(q>0?"green":"red")+'">'+(q>0?"DISPONIBLE":"SIN STOCK")+'</span></td></tr>';});
+  h+='</tbody></table></div>';area.innerHTML=h;
+}
+function renderReportAudit(){
+  const container=document.getElementById("reportContent"), logs=(DB.wsLog||[]).slice().reverse();
+  let html='<div class="report-shell"><div class="report-header"><div><h2>🔍 Auditoría WebService</h2><div class="small">Trazabilidad de solicitudes y respuestas entre el módulo y FIN700.</div></div></div>';
+  html+='<div class="report-filters"><div class="report-filter-grid"><div><label>Tipo transacción</label><select id="auditType"><option value="">Todos</option><option>OUTBOUND_REQUEST</option><option>INBOUND_CALLBACK</option><option>ERROR</option></select></div><div><label>Texto</label><input id="auditText" placeholder="Buscar en detalle"></div></div><div class="report-filter-actions"><button class="btn green" onclick="applyAuditReport()">Aplicar filtros</button></div></div><div id="auditResult"></div></div>';
+  container.innerHTML=html;window.currentAuditLogs=logs;renderAuditRows(logs);
+}
+function applyAuditReport(){
+  const typ=document.getElementById("auditType").value,txt=(document.getElementById("auditText").value||"").toLowerCase();
+  renderAuditRows(window.currentAuditLogs.filter(x=>(!typ||x.type===typ)&&(!txt||String(x.detail||"").toLowerCase().includes(txt))));
+}
+function renderAuditRows(logs){
+  const area=document.getElementById("auditResult");if(!area)return;
+  let h='<div class="report-kpis"><div class="report-kpi"><span>Transacciones</span><b>'+logs.length+'</b></div></div><div class="report-table"><table><thead><tr><th>Tipo</th><th>Fecha / hora</th><th>Detalle</th></tr></thead><tbody>';
+  logs.forEach(l=>h+='<tr><td>'+reportEsc(l.type)+'</td><td>'+reportEsc(l.timestamp)+'</td><td>'+reportEsc(l.detail)+'</td></tr>');
+  h+='</tbody></table></div>';area.innerHTML=h;
+}
+function initWallboard(){
+  document.getElementById("wbody").innerHTML=
+    '<div class="wb-item"><b style="color:var(--red)">Versión v2.0</b><br>Sistema Ayudas Técnicas con FIN700</div>'+
+    '<div class="wb-item"><b style="color:var(--red)">Limpiar datos</b><br>Menú → ⊗ para resetear ejemplos</div>'+
+    '<div class="wb-item"><b style="color:var(--red)">Flujo completo</b><br>Indicación → Evaluación → Prevalidación → Contrato</div>';
+}
+
+renderContext();
+updateProfile();
+renderIndications();
+renderAgenda();
+renderAdmin();
+renderArticles();
+renderStock();
+
+initWallboard();
+</script>
+
+</body>
+</html>
