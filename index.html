@@ -606,7 +606,7 @@ pre{
     <option value="MED">Médico tratante</option>
     <option value="TO">Administrador TO</option>
     <option value="KI">Administrador KI</option>
-    <option value="TI">Administrador TI</option>
+    <option value="TI">Administrador TO/KI</option>
   </select>
 
   <div id="userBox" class="user-box"></div>
@@ -1135,7 +1135,7 @@ const USERS={
   MED:{name:"Diego Rocha",label:"Médico tratante",specialty:"Fisiatría"},
   TO:{name:"Ximena López",label:"Administrador TO",specialty:"Terapia Ocupacional"},
   KI:{name:"Karen Morales",label:"Administrador KI",specialty:"Kinesiología"},
-  TI:{name:"Cesar Jimenez",label:"Administrador TI",specialty:"Administración"}
+  TI:{name:"Cesar Jimenez",label:"Administrador KI/TO",specialty:"Administración"}
 };
 
 const SPECIFICATIONS={
@@ -2600,7 +2600,7 @@ function saveIndication(){
     (indication.usedChairRequested
       ?"<b>Modalidad:</b> ♻️ Silla de ruedas usada disponible para reutilización.<br>"
       :"")+
-    "<br>Siguiente paso: Administrador TI debe agendar la actividad de evaluación."
+    "<br>Siguiente paso: Administrador TO/KI debe agendar la actividad de evaluación."
   );
 }
 
@@ -2617,7 +2617,7 @@ function openActivity(kind){
 
   if(!["TI","TO","KI"].includes(currentProfile)){
     showMessage(
-      "El registro de actividad requiere perfil Administrador TI, TO o KI."
+      "El registro de actividad requiere perfil Administrador TO/KI, TO o KI."
     );
     return;
   }
@@ -3447,7 +3447,7 @@ function savePrestations(){
 
     showMessage(
       "Prestaciones registradas y chequeo conforme. "+
-      "Administrador TI puede realizar la prevalidación de entrega."
+      "Administrador TO/KI puede realizar la prevalidación de entrega."
     );
 
     return;
