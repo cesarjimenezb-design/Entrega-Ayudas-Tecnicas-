@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SIC · Ayudas Técnicas · Teletón</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
 <style>
 :root{
@@ -684,13 +685,12 @@ pre{
     </div>
 
     <div class="toolbar">
-      <button id="ptActivity" class="tool" title="Agregar actividad / Agendar">▣</button>
-      <button id="ptNew" class="tool" title="Nueva indicación médica">📝</button>
-      <button id="ptCancel" class="tool" title="Anular indicación">✖</button>
-      <button id="ptDelete" class="tool" title="Eliminar indicación (sólo médico, estado Indicada)">🗑</button>
-      <button id="ptView" class="tool" title="Ver indicación">👁</button>
-      <button id="ptCiclopit" class="tool" title="Ciclopit">♿</button>
-      <button id="ptHistory" class="tool" title="Historial">🕘</button>
+      <button id="ptActivity" class="tool" title="Agregar actividad / Agendar"><i class="fa-solid fa-calendar-plus"></i></button>
+      <button id="ptNew" class="tool" title="Nueva indicación médica"><i class="fa-solid fa-file-medical"></i></button>
+      <button id="ptCancel" class="tool" title="Anular indicación"><i class="fa-solid fa-ban"></i></button>
+      <button id="ptView" class="tool" title="Ver indicación"><i class="fa-solid fa-eye"></i></button>
+      <button id="ptCiclopit" class="tool" title="Ciclopit"><i class="fa-solid fa-wheelchair"></i></button>
+      <button id="ptHistory" class="tool" title="Historial"><i class="fa-solid fa-clock-rotate-left"></i></button>
     </div>
 
     <div class="table-wrap">
@@ -868,15 +868,15 @@ pre{
     </div>
 
     <div class="toolbar">
-      <button id="adRefresh" class="tool" title="Actualizar">⟳</button>
-      <button id="adActivity" class="tool" title="Agregar actividad">▣</button>
-      <button id="adPrevalidation" class="tool" title="Prevalidación">📋</button>
-      <button id="adContact" class="tool" title="Contactar paciente">📞</button>
-      <button id="adCancel" class="tool" title="Anular">✖</button>
-      <button id="adReturn" class="tool" title="Devolución">▤</button>
-      <button class="tool" disabled title="Ciclopit en desarrollo">♿</button>
-      <button id="adHistory" class="tool" title="Historial">🕘</button>
-      <button id="adExport" class="tool" title="Exportar">⬇</button>
+      <button id="adRefresh" class="tool" title="Actualizar"><i class="fa-solid fa-rotate"></i></button>
+      <button id="adActivity" class="tool" title="Agregar actividad"><i class="fa-solid fa-calendar-plus"></i></button>
+      <button id="adPrevalidation" class="tool" title="Prevalidación"><i class="fa-solid fa-clipboard-check"></i></button>
+      <button id="adContact" class="tool" title="Contactar paciente"><i class="fa-solid fa-phone"></i></button>
+      <button id="adCancel" class="tool" title="Anular"><i class="fa-solid fa-ban"></i></button>
+      <button id="adReturn" class="tool" title="Devolución"><i class="fa-solid fa-right-left"></i></button>
+      <button class="tool" disabled title="Ciclopit en desarrollo"><i class="fa-solid fa-wheelchair"></i></button>
+      <button id="adHistory" class="tool" title="Historial"><i class="fa-solid fa-clock-rotate-left"></i></button>
+      <button id="adExport" class="tool" title="Exportar"><i class="fa-solid fa-file-export"></i></button>
     </div>
 
     <div class="table-wrap">
@@ -1074,12 +1074,12 @@ pre{
       <div class="panel-title">📊 Informes y Reportes</div>
       <div style="display:grid;grid-template-columns:1fr 3fr;gap:20px;padding:20px">
         <div style="list-style:none;padding:0;border-right:1px solid #eee">
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('listaespera')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📋 Lista espera</a></div>
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponibles')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📦 Artículos disponibles</a></div>
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('porbodega')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📦 Artículos por bodega</a></div>
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('anulaciones')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">❌ Anulaciones</a></div>
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('historico')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">📚 Histórico indicaciones</a></div>
-          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponible')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer">✓ Disponible</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('listaespera')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-list-check"></i> Lista espera</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponibles')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-box-open"></i> Artículos disponibles</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('porbodega')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-warehouse"></i> Artículos por bodega</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('anulaciones')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-ban"></i> Anulaciones</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('historico')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-clock-rotate-left"></i> Histórico indicaciones</a></div>
+          <div style="padding:10px;border-bottom:1px solid #ddd"><a href="javascript:void(0)" onclick="showReport('disponible')" style="color:#1a3a8f;text-decoration:none;font-size:13px;cursor:pointer"><i class="fa-solid fa-hand-holding-medical"></i> Ayudas técnicas entregadas</a></div>
         </div>
         <div id="reportContent" style="overflow-y:auto;max-height:600px;padding-right:10px">
           <div style="color:#999;font-size:13px;padding:20px;text-align:center">Selecciona un informe para ver los datos</div>
@@ -2092,11 +2092,6 @@ function updatePatientToolbar(){
   document.getElementById("ptCancel").disabled=
     !(indication&&active&&["MED","TI"].includes(currentProfile));
 
-  /* El médico tratante puede eliminar su indicación sólo mientras
-     está en estado "Indicada" (no evaluada, no finalizada). */
-  document.getElementById("ptDelete").disabled=
-    !(indication&&currentProfile==="MED"&&indication.state==="Indicada");
-
   document.getElementById("ptActivity").disabled=
     !(indication&&active&&["TI","TO","KI"].includes(currentProfile));
 
@@ -2115,9 +2110,6 @@ document.getElementById("ptView")
 
 document.getElementById("ptCancel")
   .addEventListener("click",()=>openCancel("patient"));
-
-document.getElementById("ptDelete")
-  .addEventListener("click",openDeleteIndication);
 
 document.getElementById("ptActivity")
   .addEventListener("click",()=>openActivity());
@@ -5481,7 +5473,7 @@ function showReport(type){
     anulaciones:"❌ Anulaciones",
     historico:"📚 Histórico indicaciones",
     demandans:"📋 Demanda N/S",
-    disponible:"✓ Disponible",
+    disponible:"✓ Ayudas técnicas entregadas",
     auditoria:"🔍 Auditoría"
   };
   const desc={
