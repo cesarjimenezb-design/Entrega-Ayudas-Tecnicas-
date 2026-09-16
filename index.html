@@ -686,7 +686,7 @@ pre{
 
     <div class="toolbar">
       <button id="ptActivity" class="tool" title="Agregar actividad / Agendar"><i class="fa-solid fa-calendar-plus"></i></button>
-      <button id="ptNew" class="tool" title="Nueva indicación médica"><i class="fa-solid fa-file-medical"></i></button>
+      <button id="ptNew" class="tool" title="Nueva indicación"><i class="fa-solid fa-file-medical"></i></button>
       <button id="ptCancel" class="tool" title="Anular indicación"><i class="fa-solid fa-ban"></i></button>
       <button id="ptView" class="tool" title="Ver indicación"><i class="fa-solid fa-eye"></i></button>
       <button id="ptCiclopit" class="tool" title="Ciclopit"><i class="fa-solid fa-wheelchair"></i></button>
@@ -989,6 +989,9 @@ pre{
         por sistema despachando los artículos solicitados y esa respuesta abastece
         el stock local, liberando las indicaciones en lista de espera.
       </div>
+      <div style="text-align:right;margin-top:8px">
+        <button id="btnMassPurchase" class="btn blue" onclick="openMassPurchase()">Solicitud de compra masiva</button>
+      </div>
     </div>
 
     <table>
@@ -1002,6 +1005,19 @@ pre{
         </tr>
       </thead>
       <tbody id="stockBody"></tbody>
+    </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Solicitudes de compra masiva · Abastecimiento de bodega</div>
+    <div class="panel-body small">Solicitudes generadas desde Administración TO/KI para abastecer múltiples artículos y cantidades en una sola gestión de compra.</div>
+    <table>
+      <thead>
+        <tr>
+          <th>N° solicitud</th><th>Fecha</th><th>Solicitante</th><th>Detalle</th><th>Estado</th><th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="massPurchaseBody"></tbody>
     </table>
   </div>
 
@@ -1159,7 +1175,8 @@ const SPECIFICATIONS={
     ["Tipo",["BASTON","MULETAS"]]
   ],
   "Carro andador":[
-    ["Subtipo",["ANTERIOR","APOYO ANTEBROQUIAL","POSTERIOR","ANDADOR CUATRO PATAS","AXILAR","CUATRO RUEDAS"]]
+    ["Subtipo",["ANTERIOR","APOYO ANTEBROQUIAL","POSTERIOR","POSTERIOR ADAPTADO","ANDADOR CUATRO PATAS","AXILAR","CUATRO RUEDAS"]],
+    ["Tamaño/Talla",["CHICO","MEDIANO","GRANDE"]]
   ],
   "Elem. antiescaras":[
     ["Tipo",["Colchón","Cojín","Almohada"]]
@@ -1181,6 +1198,44 @@ const PRODUCT_CODES={
   "Elem. antiescaras":"EDAE0555",
   "Elem. para la vida diaria y accesibilidad":"EDVD0666",
   "Elem. apoyo a la integración laboral y educativa":"EDIL0777"
+};
+
+const PRODUCT_SUBTYPES={
+  "Elem. de posicionamiento, transferencia":["Cojín","Tabla de transferencia","Almohada posicionamiento"],
+  "Silla de ruedas":["Manual estándar","Manual deportiva","Eléctrica"],
+  "Coche de paseo":["Paseo","Transporte","Especial"],
+  "Elem. apoyo para marcha":["Bastones","Muletas","Andador"],
+  "Carro andador":["Estándar","De 4 ruedas","Con asiento"],
+  "Elem. antiescaras":["Cojín gel","Colchón alternancia","Protecciones"],
+  "Elem. para la vida diaria y accesibilidad":["Adaptadores","Agarraderas","Equipos accesibilidad"],
+  "Elem. apoyo a la integración laboral y educativa":["Escritorio adaptado","Software asistivo","Equipos educativos"]
+};
+
+const PRODUCT_MODELS={
+  "Cojín":["MOD-COJ-001","MOD-COJ-002","MOD-COJ-003"],
+  "Tabla de transferencia":["MOD-TRF-001","MOD-TRF-002"],
+  "Almohada posicionamiento":["MOD-ALP-001"],
+  "Manual estándar":["MOD-SRM-001","MOD-SRM-002"],
+  "Manual deportiva":["MOD-SRD-001"],
+  "Eléctrica":["MOD-SRE-001","MOD-SRE-002"],
+  "Paseo":["MOD-COP-001"],
+  "Transporte":["MOD-COT-001","MOD-COT-002"],
+  "Especial":["MOD-COE-001"],
+  "Bastones":["MOD-BAS-001","MOD-BAS-002"],
+  "Muletas":["MOD-MUL-001"],
+  "Andador":["MOD-AND-001","MOD-AND-002"],
+  "Estándar":["MOD-CAR-001"],
+  "De 4 ruedas":["MOD-CAR-002"],
+  "Con asiento":["MOD-CAR-003"],
+  "Cojín gel":["MOD-AEG-001"],
+  "Colchón alternancia":["MOD-AEC-001"],
+  "Protecciones":["MOD-AEP-001"],
+  "Adaptadores":["MOD-VDA-001","MOD-VDA-002"],
+  "Agarraderas":["MOD-VDG-001"],
+  "Equipos accesibilidad":["MOD-VDE-001"],
+  "Escritorio adaptado":["MOD-ILE-001"],
+  "Software asistivo":["MOD-ILS-001","MOD-ILS-002"],
+  "Equipos educativos":["MOD-ILE-002"]
 };
 
 /* ================================================================
@@ -1526,6 +1581,8 @@ function seedDatabase(){
       "Bastón":0
     },
 
+    purchaseRequests:[],
+
     orders:[
       {
         number:74972,
@@ -1556,6 +1613,7 @@ function seedDatabase(){
     nextIndication:71050,
     nextAppointment:2,
     nextOrder:74973,
+    nextPurchaseRequest:1,
     nextFin700:700481
   };
 }
@@ -1582,6 +1640,9 @@ try{
     article.availableForDelivery=false;
   }
 });
+
+DB.purchaseRequests=DB.purchaseRequests||[];
+DB.nextPurchaseRequest=DB.nextPurchaseRequest||1;
 
 let currentPatientId=101020;
 let selectedIndicationId=null;
@@ -2084,7 +2145,7 @@ function updatePatientToolbar(){
     !["Anulada","Suspendida","Finalizada"].includes(indication.state);
 
   document.getElementById("ptNew").disabled=
-    currentProfile!=="MED";
+    !getCurrentPatient();
 
   document.getElementById("ptView").disabled=
     !indication;
@@ -2124,14 +2185,12 @@ document.getElementById("ptHistory")
    INDICACIÓN MÉDICA
 ================================================================ */
 function openIndication(){
-  if(currentProfile!=="MED"){
-    showMessage(
-      "La indicación médica sólo puede ser registrada por el Médico tratante."
-    );
+  const patient=getCurrentPatient();
+
+  if(!patient){
+    showMessage("Seleccione un paciente para registrar la indicación.");
     return;
   }
-
-  const patient=getCurrentPatient();
 
   const body=
     '<div class="patient-card">'+
@@ -2140,7 +2199,7 @@ function openIndication(){
     '</div>'+
 
     '<fieldset>'+
-      '<legend>Información de la Indicación Médica</legend>'+
+      '<legend>Información de la Indicación</legend>'+
 
       '<div class="grid g4">'+
         '<div>'+
@@ -2153,11 +2212,11 @@ function openIndication(){
         '</div>'+
         '<div>'+
           '<label>Especialidad</label>'+
-          '<input value="Fisiatría" readonly>'+
+          '<input value="'+USERS[currentProfile].specialty+'" readonly>'+
         '</div>'+
         '<div>'+
           '<label>Profesional responsable</label>'+
-          '<input value="'+USERS.MED.name+'" readonly>'+
+          '<input value="'+USERS[currentProfile].name+'" readonly>'+
         '</div>'+
       '</div>'+
 
@@ -2301,7 +2360,7 @@ function openIndication(){
       '</div>'+
 
       '<div id="benefitNotes" class="tab-panel">'+
-        '<label>Observaciones del médico</label>'+
+        '<label>Observaciones del profesional</label>'+
         '<textarea id="indNotes" rows="5"></textarea>'+
       '</div>'+
     '</fieldset>';
@@ -2455,7 +2514,7 @@ function showIndicationSummary(){
   const patient=getCurrentPatient();
 
   openSub(
-    "Indicación Médica · Resumen y Confirmación",
+    "Indicación · Resumen y Confirmación",
     '<div class="panel">'+
       '<div class="panelTitle">Información general del paciente</div>'+
       '<div class="panelBody grid g3">'+
@@ -2471,8 +2530,8 @@ function showIndicationSummary(){
     '<div class="panel">'+
       '<div class="panelTitle">Información clínica</div>'+
       '<div class="panelBody grid g3">'+
-        summaryValue("Especialidad","Fisiatría")+
-        summaryValue("Profesional",USERS.MED.name)+
+        summaryValue("Especialidad",USERS[currentProfile].specialty)+
+        summaryValue("Profesional",USERS[currentProfile].name)+
         summaryValue("Fecha",formatDate(data.date))+
         summaryValue("Ayuda técnica",data.type)+
         summaryValue("Período",data.usage)+
@@ -2533,7 +2592,7 @@ function saveIndication(){
     patientId:currentPatientId,
     origin:data.origin,
     destination:data.destination,
-    doctor:USERS.MED.name,
+    doctor:USERS[currentProfile].name,
     date:data.date,
     type:data.type,
     definitive:data.definitive,
@@ -2546,6 +2605,7 @@ function saveIndication(){
     impact:data.impact,
     observations:data.observations,
     target:getTarget(data.type),
+    indicationByProfile:currentProfile,
     evaluator:"",
     evaluationDate:"",
     evaluation:null,
@@ -2586,13 +2646,13 @@ function saveIndication(){
   renderAdmin();
 
   showMessage(
-    "Indicación médica registrada.<br>"+
+    "Indicación registrada.<br>"+
     "<b>Correlativo:</b> "+id+"<br>"+
     "<b>Derivación:</b> "+indication.target+"<br>"+
     (indication.usedChairRequested
       ?"<b>Modalidad:</b> ♻️ Silla de ruedas usada disponible para reutilización.<br>"
       :"")+
-    "<br>Siguiente paso: Administrador TO/KI debe agendar la actividad de evaluación."
+    "<br>Siguiente paso: corresponde continuar con la evaluación y actividades del flujo."
   );
 }
 
@@ -3269,6 +3329,13 @@ function finishEvolution(){
 
       return;
     }
+
+    const appointment=DB.appointments.find(
+      item=>item.id===Number(evolutionContext.appointmentId)
+    );
+    if(appointment){
+      appointment.state="Realizada";
+    }
   }
 
   openPrestations(evolutionContext.kind);
@@ -3429,6 +3496,13 @@ function savePrestations(){
   const indication=getSelectedIndication();
 
   if(prestationContext.kind==="delivery"){
+    const appointment=DB.appointments.find(
+      item=>item.id===Number(evolutionContext.appointmentId)
+    );
+    if(appointment){
+      appointment.state="Realizada";
+    }
+
     indication.state="Chequeo conforme";
     indication.contractState="SOLICITADO";
 
@@ -3436,6 +3510,7 @@ function savePrestations(){
     closeMain();
     renderIndications();
     renderAdmin();
+    renderAgenda();
 
     showMessage(
       "Prestaciones registradas y chequeo conforme. "+
@@ -4203,6 +4278,7 @@ function saveContact(){
 
   if(document.getElementById("contactResult").selectedIndex===0){
     indication.stockReady=true;
+    selectedIndicationId=indication.id;
 
     persist();
     closeMain();
@@ -5136,6 +5212,122 @@ function simulateInbound(){
   respondFin700(order.number);
 }
 
+function canManageMassPurchase(){
+  return ["TO","KI","TI"].includes(currentProfile);
+}
+
+function updateModelOptions(index){
+  const subtypeEl=document.getElementById("purchaseSubtype"+index);
+  const modelEl=document.getElementById("purchaseModel"+index);
+  if(!subtypeEl||!modelEl)return;
+  const subtype=subtypeEl.value;
+  const models=subtype?(PRODUCT_MODELS[subtype]||[]):[];
+  modelEl.innerHTML='<option value="">—</option>'+(models.map(m=>'<option value="'+escapeAttribute(m)+'">'+escapeAttribute(m)+'</option>').join(""));
+}
+
+function openMassPurchase(){
+  if(!canManageMassPurchase()){
+    showMessage("La solicitud de compra masiva sólo está disponible para Administración TO, Administración KI o Administración TO/KI.");
+    return;
+  }
+  const types=Object.keys(PRODUCT_CODES);
+  let rows='<div style="display:grid;grid-template-columns:2fr 2fr 2fr 1fr;gap:10px;align-items:end">';
+  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Artículo</div>';
+  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Subtipo</div>';
+  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Modelo</div>';
+  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Cant.</div>';
+  
+  types.forEach((type,index)=>{
+    const subtypes=PRODUCT_SUBTYPES[type]||[];
+    const subtypeOptions=subtypes.map((st,i)=>'<option value="'+escapeAttribute(st)+'">'+escapeAttribute(st)+'</option>').join("");
+    rows+='<div><input value="'+escapeAttribute(type)+'" readonly style="font-size:11px"></div>';
+    rows+='<div><select id="purchaseSubtype'+index+'" onchange="updateModelOptions('+index+')" style="font-size:11px;width:100%"><option value="">—</option>'+subtypeOptions+'</select></div>';
+    rows+='<div><select id="purchaseModel'+index+'" style="font-size:11px;width:100%"><option value="">—</option></select></div>';
+    rows+='<div><input type="number" min="0" max="999" step="1" value="0" id="purchaseQty'+index+'" style="font-size:11px;width:100%"></div>';
+  });
+  rows+='</div>';
+  
+  openMain(
+    "Solicitud de compra masiva",
+    '<div class="message info">Ingrese la cantidad a solicitar de cada artículo. Puede solicitar varios tipos y cantidades en una sola gestión.</div>'+rows,
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn blue" onclick="saveMassPurchase()">Generar solicitud</button>',
+    "large"
+  );
+}
+
+function saveMassPurchase(){
+  if(!canManageMassPurchase()){
+    showMessage("No tiene permisos para generar una solicitud de compra masiva.");
+    return;
+  }
+  const types=Object.keys(PRODUCT_CODES);
+  const items=[];
+  types.forEach((type,index)=>{
+    const qty=Math.max(0,parseInt(document.getElementById("purchaseQty"+index).value||"0",10));
+    if(qty>0){
+      const subtypeEl=document.getElementById("purchaseSubtype"+index);
+      const modelEl=document.getElementById("purchaseModel"+index);
+      const subtype=subtypeEl?subtypeEl.value:"";
+      const model=modelEl?modelEl.value:"";
+      items.push({type:type,code:PRODUCT_CODES[type],quantity:qty,subtype:subtype||null,model:model||null});
+    }
+  });
+  if(!items.length){
+    showMessage("Debe ingresar al menos una cantidad mayor que cero.");
+    return;
+  }
+  const requestNumber="CPM-"+String(DB.nextPurchaseRequest++).padStart(4,"0");
+  const request={id:requestNumber,date:today(),requester:USERS[currentProfile].name,profile:currentProfile,state:"Solicitada",items:items};
+  DB.purchaseRequests.unshift(request);
+  items.forEach(item=>DB.orders.push({
+    number:DB.nextOrder++,fin700:"",type:"COMPRA",product:item.code,item:item.type,quantity:item.quantity,subtype:item.subtype,model:item.model,
+    indicationId:null,purchaseRequestId:requestNumber,date:today(),state:"Solicitada"
+  }));
+  logWs("OUTBOUND_REQUEST","/api/fin700/v1/solicitud-compra-masiva",{
+    event:"SOLICITUD_COMPRA_MASIVA",solicitudCompra:requestNumber,solicitante:request.requester,perfil:request.profile,
+    items:items.map(item=>({articulo:item.type,subtipo:item.subtype||"—",modelo:item.model||"—",codigo:item.code,cantidad:item.quantity}))
+  });
+  persist();closeMain();renderStock();
+  showMessage("Solicitud de compra masiva <b>"+requestNumber+"</b> generada correctamente.<br>"+
+    items.map(item=>item.quantity+" × "+item.type+(item.subtype?" ("+item.subtype+")":"")+(item.model?" ["+item.model+"]":"")).join("<br>")+"<br><br>Estado: <b>Solicitada</b>.");
+}
+
+function receiveMassPurchase(requestId){
+  if(!canManageMassPurchase()){
+    showMessage("Sólo Administración TO/KI puede recepcionar una solicitud de compra masiva.");
+    return;
+  }
+  const request=DB.purchaseRequests.find(item=>item.id===requestId);
+  if(!request||request.state!=="Solicitada")return;
+  request.items.forEach(item=>{
+    DB.stockLocal[item.type]=(DB.stockLocal[item.type]||0)+item.quantity;
+    DB.orders.filter(order=>order.purchaseRequestId===request.id&&order.item===item.type&&order.state==="Solicitada")
+      .forEach(order=>{order.state="Recepcionado";order.finResponse="Recepción compra masiva · "+item.quantity+" unidades · "+formatDate(today());});
+    releaseWaitList(item.type);
+  });
+  request.state="Recepcionada";request.receivedDate=today();
+  logWs("INBOUND_CALLBACK","/api/sic/v1/recepcion-compra-masiva",{
+    event:"COMPRA_MASIVA_RECEPCIONADA",solicitudCompra:request.id,
+    items:request.items.map(item=>({articulo:item.type,cantidad:item.quantity}))
+  });
+  persist();renderStock();renderAdmin();
+  showMessage("Solicitud de compra masiva <b>"+request.id+"</b> recepcionada. El stock local fue actualizado con las cantidades solicitadas.");
+}
+
+function renderMassPurchaseRequests(){
+  const body=document.getElementById("massPurchaseBody");if(!body)return;
+  const requests=DB.purchaseRequests||[];
+  body.innerHTML=requests.length
+    ?requests.map(request=>
+      '<tr><td><b>'+request.id+'</b></td><td>'+formatDate(request.date)+'</td><td>'+request.requester+'</td>'+
+      '<td>'+request.items.map(item=>item.quantity+' × '+item.type).join('<br>')+'</td>'+
+      '<td>'+request.state+'</td><td>'+(request.state==="Solicitada"&&canManageMassPurchase()?
+      '<button class="mini blue" onclick="receiveMassPurchase(\''+request.id+'\')">Recepcionar compra</button>':'<span class="small">—</span>')+'</td></tr>'
+    ).join("")
+    :'<tr><td colspan="6" class="empty">Sin solicitudes de compra masiva.</td></tr>';
+}
+
 function renderStock(){
   const types=Object.keys(PRODUCT_CODES);
 
@@ -5180,6 +5372,7 @@ function renderStock(){
 
   renderWaitList();
   renderWsLog();
+  renderMassPurchaseRequests();
 }
 
 /* Simulación del webservice de respuesta de FIN700:
