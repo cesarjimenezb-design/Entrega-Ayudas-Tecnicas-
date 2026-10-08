@@ -454,6 +454,12 @@ legend{
 }
 .modal.small{width:520px}
 .modal.large{width:1100px}
+.modal.mass-purchase{width:760px;max-width:90vw;border-radius:4px;overflow:hidden}
+.modal.mass-purchase .modal-body{padding:8px}
+.mass-purchase-grid{display:grid;grid-template-columns:1.55fr 1.25fr 1.25fr .55fr;gap:4px 5px;align-items:center}
+.mass-purchase-grid .mp-head{font-weight:bold;font-size:9px;padding:1px 3px;color:#444}
+.mass-purchase-grid .mp-row{min-width:0}
+.mass-purchase-grid input,.mass-purchase-grid select{padding:3px 5px;font-size:9px;height:25px;box-sizing:border-box}
 .modal-head{
   display:flex;
   justify-content:space-between;
@@ -570,6 +576,8 @@ pre{
 @media(max-width:1100px){.report-filter-grid{grid-template-columns:repeat(2,minmax(150px,1fr))}.report-kpis{grid-template-columns:repeat(3,minmax(120px,1fr))}}
 @media(max-width:650px){.report-filter-grid,.report-kpis,.report-summary-grid{grid-template-columns:1fr}.report-header{display:block}}
 
+
+.special-chair{margin-top:10px;border:1px solid #c5d8ec;background:#f3f8fd;padding:8px}.special-chair h4{margin:10px 0 6px;background:#c7def8;padding:6px;color:#173b69}.special-chair .special-row{display:grid;grid-template-columns:175px 1fr;gap:8px;border-bottom:1px solid #fff;padding:6px 3px}.special-chair .special-choices{display:flex;flex-wrap:wrap;gap:5px 14px}.special-chair input{max-width:100%}.special-chair .special-measures{display:grid;grid-template-columns:repeat(3,minmax(125px,1fr));gap:7px}.special-chair .special-measures input{width:75px}@media(max-width:650px){.special-chair .special-row{grid-template-columns:1fr}}
 </style>
 </head>
 
@@ -592,7 +600,7 @@ pre{
       <div class="menu-item sub" onclick="showPage('mantencion')">Mantención Ayudas Técnicas</div>
       <div class="menu-item sub" onclick="showPage('bodega')">Bodega / FIN700</div>
       <div class="menu-item sub" onclick="showPage('informes')">Informes</div>
-      <div class="menu-item reset" onclick="resetDB(event)">⊗</div>
+      <div class="menu-item reset" onclick="resetDB(event)" title="Limpiar datos y recargar ejemplos">🧹 Limpiar ejemplos</div>
     </div>
   </div>
 
@@ -666,8 +674,8 @@ pre{
 
       <div class="message warning">
         <b>Flujo:</b>
-        Indicación médica → Agendar evaluación → Escritorio Profesional →
-        clip celeste → Evaluación TO/KI → Evolución → Prestaciones →
+        Necesidad detectada en actividad clínica → Indicación médica →
+        Evaluación TO/KI cuando corresponda → Evolución → Prestaciones →
         Stock → Entrega → Revisión conforme → Prevalidación → Contrato.
       </div>
     </div>
@@ -753,6 +761,21 @@ pre{
       </div>
     </div>
 
+    <div class="toolbar" style="margin:0 0 12px 0">
+      <button id="agendaAtActivityPatient" class="tool" title="Actividad y paciente · Evaluación AT" disabled>
+        <i class="fa-solid fa-user-doctor"></i>
+      </button>
+      <button type="button" class="tool" title="Paciente" aria-label="Paciente">
+        <i class="fa-solid fa-user"></i>
+      </button>
+      <button type="button" class="tool" title="Ficha clínica" aria-label="Ficha clínica">
+        <i class="fa-solid fa-clipboard-list"></i>
+      </button>
+      <button type="button" class="tool" title="Agenda" aria-label="Agenda">
+        <i class="fa-solid fa-calendar-days"></i>
+      </button>
+    </div>
+
     <div class="table-wrap">
       <table>
         <thead>
@@ -771,8 +794,7 @@ pre{
     </div>
 
     <div class="panel-body small">
-      El clip celeste de una evaluación cambia automáticamente el contexto
-      al perfil TO/KI correspondiente y abre el formulario de evaluación.
+      Seleccione cualquier paciente en la grilla de agenda para habilitar el botón <b>Actividad y paciente</b>. Desde esta acción se puede iniciar la evaluación de Ayudas Técnicas utilizando la actividad clínica seleccionada como origen.
     </div>
   </div>
 </section>
@@ -1137,7 +1159,7 @@ pre{
 /* ================================================================
    CATÁLOGOS
 ================================================================ */
-const STORAGE_KEY="teleton-ayudas-tecnicas-final-v3";
+const STORAGE_KEY="teleton-ayudas-tecnicas-final-v4";
 
 const INSTITUTES=[
   "IT 131 - SANTIAGO",
@@ -1153,6 +1175,23 @@ const USERS={
   KI:{name:"Karen Morales",label:"Administrador KI",specialty:"Kinesiología"},
   TI:{name:"Cesar Jimenez",label:"Administrador KI/TO",specialty:"Administración"}
 };
+
+const CLINICAL_ORIGINS=[
+  "Primera consulta médica",
+  "Primera consulta Kinesiología",
+  "Primera consulta Terapia Ocupacional",
+  "Sesión de tratamiento",
+  "Control / seguimiento",
+  "Visita domiciliaria",
+  "Otra actividad clínica"
+];
+
+function defaultClinicalOrigin(profile){
+  if(profile==="MED")return "Primera consulta médica";
+  if(profile==="KI")return "Primera consulta Kinesiología";
+  if(profile==="TO")return "Primera consulta Terapia Ocupacional";
+  return "Otra actividad clínica";
+}
 
 const SPECIFICATIONS={
   "Elem. de posicionamiento, transferencia":[
@@ -1179,7 +1218,7 @@ const SPECIFICATIONS={
     ["Tamaño/Talla",["CHICO","MEDIANO","GRANDE"]]
   ],
   "Elem. antiescaras":[
-    ["Tipo",["Colchón","Cojín","Almohada"]]
+    ["Tipo",["Colchón","Almohada"]]
   ],
   "Elem. para la vida diaria y accesibilidad":[
     ["Tipo",["Elevador","Adaptador","Ayuda Agarradera"]]
@@ -1201,18 +1240,17 @@ const PRODUCT_CODES={
 };
 
 const PRODUCT_SUBTYPES={
-  "Elem. de posicionamiento, transferencia":["Cojín","Tabla de transferencia","Almohada posicionamiento"],
+  "Elem. de posicionamiento, transferencia":["Tabla de transferencia","Almohada posicionamiento"],
   "Silla de ruedas":["Manual estándar","Manual deportiva","Eléctrica"],
   "Coche de paseo":["Paseo","Transporte","Especial"],
   "Elem. apoyo para marcha":["Bastones","Muletas","Andador"],
   "Carro andador":["Estándar","De 4 ruedas","Con asiento"],
-  "Elem. antiescaras":["Cojín gel","Colchón alternancia","Protecciones"],
+  "Elem. antiescaras":["Colchón alternancia","Protecciones"],
   "Elem. para la vida diaria y accesibilidad":["Adaptadores","Agarraderas","Equipos accesibilidad"],
   "Elem. apoyo a la integración laboral y educativa":["Escritorio adaptado","Software asistivo","Equipos educativos"]
 };
 
 const PRODUCT_MODELS={
-  "Cojín":["MOD-COJ-001","MOD-COJ-002","MOD-COJ-003"],
   "Tabla de transferencia":["MOD-TRF-001","MOD-TRF-002"],
   "Almohada posicionamiento":["MOD-ALP-001"],
   "Manual estándar":["MOD-SRM-001","MOD-SRM-002"],
@@ -1227,7 +1265,6 @@ const PRODUCT_MODELS={
   "Estándar":["MOD-CAR-001"],
   "De 4 ruedas":["MOD-CAR-002"],
   "Con asiento":["MOD-CAR-003"],
-  "Cojín gel":["MOD-AEG-001"],
   "Colchón alternancia":["MOD-AEC-001"],
   "Protecciones":["MOD-AEP-001"],
   "Adaptadores":["MOD-VDA-001","MOD-VDA-002"],
@@ -1446,6 +1483,54 @@ function seedDatabase(){
         kind:"evaluation",
         notes:"",
         state:"Agendada"
+      },
+      {
+        id:2,
+        indicationId:null,
+        patientId:101020,
+        date:new Date().toISOString().slice(0,10),
+        time:"10:00",
+        activity:"Control médico",
+        area:"Fisiatría",
+        kind:"clinical",
+        notes:"Control clínico programado",
+        state:"Agendada"
+      },
+      {
+        id:3,
+        indicationId:null,
+        patientId:121296,
+        date:new Date().toISOString().slice(0,10),
+        time:"10:30",
+        activity:"Tratamiento",
+        area:"Terapia Ocupacional",
+        kind:"clinical",
+        notes:"Sesión de tratamiento",
+        state:"Agendada"
+      },
+      {
+        id:4,
+        indicationId:null,
+        patientId:121212,
+        date:new Date().toISOString().slice(0,10),
+        time:"11:00",
+        activity:"Sesión de Kinesiología",
+        area:"Kinesiología",
+        kind:"clinical",
+        notes:"Sesión terapéutica",
+        state:"Agendada"
+      },
+      {
+        id:5,
+        indicationId:null,
+        patientId:130001,
+        date:new Date().toISOString().slice(0,10),
+        time:"11:30",
+        activity:"Control / seguimiento",
+        area:"Fisiatría",
+        kind:"clinical",
+        notes:"Seguimiento de evolución",
+        state:"Agendada"
       }
     ],
 
@@ -1611,7 +1696,7 @@ function seedDatabase(){
       }
     ],
     nextIndication:71050,
-    nextAppointment:2,
+    nextAppointment:6,
     nextOrder:74973,
     nextPurchaseRequest:1,
     nextFin700:700481
@@ -1625,6 +1710,12 @@ let DB;
 
 try{
   DB=JSON.parse(localStorage.getItem(STORAGE_KEY))||seedDatabase();
+(DB.indications||[]).forEach(indication=>{
+  if(!requiresComodato(indication.type)){
+    indication.contractState="";
+    indication.contract=null;
+  }
+});
 }catch(error){
   DB=seedDatabase();
 }
@@ -1647,9 +1738,11 @@ DB.nextPurchaseRequest=DB.nextPurchaseRequest||1;
 let currentPatientId=101020;
 let selectedIndicationId=null;
 let selectedAdminId=null;
+let selectedAgendaAppointmentId=null;
 let currentProfile="MED";
 let evolutionContext=null;
 let prestationContext=null;
+let toolbarAtFlowContext=null;
 let cancelOrigin="patient";
 let selectedArticleCode=null;
 let messageCallback=null;
@@ -2154,7 +2247,7 @@ function updatePatientToolbar(){
     !(indication&&active&&["MED","TI"].includes(currentProfile));
 
   document.getElementById("ptActivity").disabled=
-    !(indication&&active&&["TI","TO","KI"].includes(currentProfile));
+    !(getCurrentPatient()&&["TI","TO","KI"].includes(currentProfile));
 
   document.getElementById("ptCiclopit").disabled=
     !getCurrentPatient();
@@ -2180,6 +2273,123 @@ document.getElementById("ptCiclopit")
 
 document.getElementById("ptHistory")
   .addEventListener("click",openHistory);
+
+/* ================================================================
+   ACTIVIDAD Y PACIENTE · ACCESO DIRECTO DESDE TOOLBAR AT
+   Este acceso reutiliza el modal de indicación existente y no altera
+   el flujo ni los componentes actuales del Escritorio Profesional.
+================================================================ */
+function openToolbarActivityPatient(){
+  const patient=getCurrentPatient();
+  const appointments=DB.appointments
+    .slice()
+    .sort((a,b)=>{
+      const da=(a.date||"")+" "+(a.time||"");
+      const db=(b.date||"")+" "+(b.time||"");
+      return da.localeCompare(db);
+    });
+
+  const appointmentOptions=appointments.length
+    ?appointments.map(appointment=>{
+        const p=getPatient(appointment.patientId);
+        return '<option value="'+appointment.id+'">'+
+          (appointment.time||"")+" · "+appointment.activity+
+          (p?" · "+p.name:"")+
+        '</option>';
+      }).join("")
+    :'<option value="">Sin actividades agendadas para hoy</option>';
+
+  const patientOptions=DB.patients.map(p=>
+    '<option value="'+p.id+'" '+(patient&&p.id===patient.id?"selected":"")+'>'+
+      p.id+' - '+p.name+
+    '</option>'
+  ).join("");
+
+  const body=
+    '<div class="message info">'+
+      'Seleccione el paciente y, si corresponde, la actividad clínica desde la agenda. '+
+      'La evaluación de Ayudas Técnicas puede iniciarse durante cualquier atención clínica.'+
+    '</div>'+
+
+    '<label class="required">Paciente</label>'+
+    '<select id="toolbarAtPatient" onchange="syncToolbarAtAppointment()">'+
+      patientOptions+
+    '</select>'+
+
+    '<label style="margin-top:8px">Actividad de la agenda</label>'+
+    '<select id="toolbarAtAppointment" onchange="syncToolbarAtAppointment()">'+
+      '<option value="">Atención clínica sin seleccionar actividad de agenda</option>'+
+      appointmentOptions+
+    '</select>'+
+
+    '<div id="toolbarAtActivityInfo" class="small" style="margin-top:7px"></div>';
+
+  openMain(
+    "Actividad y paciente · Evaluación Ayudas Técnicas",
+    body,
+    '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
+    '<button class="btn red" onclick="startToolbarAtFlow()">Iniciar evaluación AT</button>',
+    "small"
+  );
+
+  syncToolbarAtAppointment();
+}
+
+function syncToolbarAtAppointment(){
+  const appointmentId=document.getElementById("toolbarAtAppointment")?.value;
+  const info=document.getElementById("toolbarAtActivityInfo");
+  if(!info)return;
+
+  if(!appointmentId){
+    info.textContent="No se seleccionó una actividad de agenda. Se utilizará el paciente seleccionado y la actividad clínica por defecto del perfil.";
+    return;
+  }
+
+  const appointment=DB.appointments.find(item=>item.id===Number(appointmentId));
+  if(!appointment)return;
+
+  const patient=getPatient(appointment.patientId);
+  const patientSelect=document.getElementById("toolbarAtPatient");
+  if(patient&&patientSelect){
+    patientSelect.value=String(patient.id);
+  }
+
+  info.innerHTML=
+    '<b>Actividad:</b> '+appointment.activity+
+    ' · <b>Fecha:</b> '+formatDate(appointment.date)+
+    (appointment.time?' · <b>Hora:</b> '+appointment.time:'')+
+    (patient?' · <b>Paciente:</b> '+patient.name:'');
+}
+
+function startToolbarAtFlow(){
+  const patientId=Number(document.getElementById("toolbarAtPatient").value);
+  const appointmentId=Number(document.getElementById("toolbarAtAppointment").value)||null;
+  const patient=getPatient(patientId);
+
+  if(!patient){
+    showMessage("Seleccione un paciente para iniciar la evaluación de Ayudas Técnicas.");
+    return;
+  }
+
+  currentPatientId=patient.id;
+  selectedIndicationId=null;
+  selectedAdminId=null;
+
+  const appointment=appointmentId
+    ?DB.appointments.find(item=>item.id===appointmentId)
+    :null;
+
+  /* Contexto temporal utilizado únicamente por este nuevo acceso. */
+  toolbarAtFlowContext={
+    appointmentId:appointment?appointment.id:null,
+    activity:appointment?appointment.activity:defaultClinicalOrigin(currentProfile)
+  };
+
+  document.getElementById("searchInput").value=patient.name;
+  renderContext();
+  closeMain();
+  openIndication();
+}
 
 /* ================================================================
    INDICACIÓN MÉDICA
@@ -2275,94 +2485,109 @@ function openIndication(){
           '</label>'+
         '</div>'+
       '</div>'+
-      '<div id="usedChairOption" style="display:none;margin-top:10px"></div>'+
+      '<div class="grid g2" style="margin-top:8px">'+
+        '<div>'+
+          '<label class="required">Actividad clínica donde se detecta la necesidad</label>'+
+          '<select id="indClinicalOrigin">'+
+            CLINICAL_ORIGINS.map(function(origin){
+              const contextActivity=toolbarAtFlowContext&&toolbarAtFlowContext.activity;
+              const selectedOrigin=(contextActivity&&CLINICAL_ORIGINS.includes(contextActivity))
+                ?contextActivity
+                :defaultClinicalOrigin(currentProfile);
+              return '<option '+(origin===selectedOrigin?'selected':'')+'>'+origin+'</option>';
+            }).join('')+
+          '</select>'+
+        '</div>'+
+        '<div class="message info" style="margin:0;align-self:end">'+
+          'La indicación puede registrarse dentro de una atención clínica ya existente. No es obligatorio agendar previamente una evaluación exclusiva de AT.'+
+        '</div>'+
+      '</div>'+
+      '<div id="usedChairOption" style="display:none;margin-top:10px"></div><div id="indSubtypeBox" class="grid g4" style="margin-top:8px"></div>'+
     '</fieldset>'+
 
     '<fieldset>'+
       '<legend>Especificaciones Técnicas</legend>'+
       '<div class="grid g4" id="indSpecs"></div>'+
-      '<div id="indTarget" class="msgInfo"></div>'+
+      '<div id="indTarget" class="msgInfo"></div><div id="indSpecialChair"></div>'+
     '</fieldset>'+
 
     '<fieldset>'+
       '<legend>Áreas a beneficiar con la ayuda técnica</legend>'+
-
       '<div class="tabs">'+
-        '<button class="tab-button active" onclick="switchTab(this,\'benefitActivity\')">'+
-          'Mejorar la actividad'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'benefitParticipation\')">'+
-          'Mejorar participación'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'benefitCaregiver\')">'+
-          'Aliviar carga del cuidador'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'benefitNotes\')">'+
-          'Observaciones'+
-        '</button>'+
+        '<button type="button" class="tab-button active" onclick="switchTab(this,\'benefitActivity\')">Actividad</button>'+
+        '<button type="button" class="tab-button" onclick="switchTab(this,\'benefitParticipation\')">Participación</button>'+
+        '<button type="button" class="tab-button" onclick="switchTab(this,\'benefitCaregiver\')">Cuidador / apoyo</button>'+
+        '<button type="button" class="tab-button" onclick="switchTab(this,\'benefitNotes\')">Observaciones</button>'+
       '</div>'+
-
       '<div id="benefitActivity" class="tab-panel active">'+
-        checkboxHtml("indArea","Movilidad","Movilidad")+
-        checkboxHtml("indArea","Autocuidado","Autocuidado")+
-        checkboxHtml("indArea","Vida Doméstica","Vida Doméstica")+
+        '<div class="grid g3">'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Movilidad"> Movilidad</label>'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Desplazamiento"> Desplazamiento</label>'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Transferencias"> Transferencias</label>'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Autocuidado"> Autocuidado</label>'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Comunicación"> Comunicación</label>'+
+          '<label class="checkbox"><input type="checkbox" name="indArea" value="Actividades de la vida diaria"> Actividades de la vida diaria</label>'+
+        '</div>'+
       '</div>'+
-
       '<div id="benefitParticipation" class="tab-panel">'+
         '<div class="grid g3">'+
           '<div>'+
-            '<b>Educación</b>'+
-            checkboxHtml("indArea","Preescolar","Preescolar")+
-            checkboxHtml("indArea","Escolar","Escolar")+
-            checkboxHtml("indArea","Formación superior","Formación superior")+
-            checkboxHtml("indArea","Educación no reglada","Educación no reglada")+
+            '<div style="font-weight:700;margin-bottom:10px">Educación</div>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Preescolar"> Preescolar</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Escolar"> Escolar</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Formación superior"> Formación superior</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Educación no reglada"> Educación no reglada</label>'+
           '</div>'+
           '<div>'+
-            '<b>Trabajo y Empleo</b>'+
-            checkboxHtml("indArea","Aprendizaje","Aprendizaje")+
-            checkboxHtml("indArea","Trabajo no remunerado","Trabajo no remunerado")+
-            checkboxHtml("indArea","Trabajo remunerado","Trabajo remunerado")+
-            checkboxHtml("indArea","Desempleo","Desempleo")+
+            '<div style="font-weight:700;margin-bottom:10px">Trabajo y Empleo</div>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Aprendizaje"> Aprendizaje</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Trabajo no remunerado"> Trabajo no remunerado</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Trabajo remunerado"> Trabajo remunerado</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Desempleo"> Desempleo</label>'+
           '</div>'+
           '<div>'+
-            '<b>Vida comunitaria, social y cívica</b>'+
-            checkboxHtml("indArea","Vida comunitaria","Vida comunitaria")+
-            checkboxHtml("indArea","Vida social","Vida social")+
-            checkboxHtml("indArea","Tiempo libre y recreación","Tiempo libre y recreación")+
+            '<div style="font-weight:700;margin-bottom:10px">Vida comunitaria, social y cívica</div>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Vida comunitaria"> Vida comunitaria</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Vida social"> Vida social</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indParticipation" value="Tiempo libre y recreación"> Tiempo libre y recreación</label>'+
           '</div>'+
         '</div>'+
       '</div>'+
-
       '<div id="benefitCaregiver" class="tab-panel">'+
         '<div class="grid g3">'+
           '<div>'+
-            '<b>Cuidadores y personal de apoyo</b>'+
-            checkboxHtml("indArea","Prevención de patología lumbar","Prevención de patología lumbar")+
-            checkboxHtml("indArea","Prevención de lesiones EESS","Prevención de lesiones EESS")+
-            checkboxHtml("indArea","Facilitar participación social del cuidador","Facilitar participación social del cuidador")+
-            checkboxHtml("indArea","Otro","Otro")+
+            '<div style="font-weight:700;margin-bottom:10px">Cuidadores y personal de apoyo</div>'+
+            '<label class="checkbox"><input type="checkbox" name="indCaregiverSupport" value="Prevención de patología lumbar"> Prevención de patología lumbar</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indCaregiverSupport" value="Prevención de lesiones EESS"> Prevención de lesiones EESS</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indCaregiverSupport" value="Facilitar participación social del cuidador"> Facilitar participación social del cuidador</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indCaregiverSupport" value="Otro"> Otro</label>'+
           '</div>'+
           '<div>'+
-            '<b>¿En qué espacios necesita la AT?</b>'+
-            checkboxHtml("indSpace","Hogar","Hogar")+
-            checkboxHtml("indSpace","Espacio educacional","Espacio educacional")+
-            checkboxHtml("indSpace","Espacio laboral","Espacio laboral")+
-            checkboxHtml("indSpace","Espacios públicos comunitarios","Espacios públicos comunitarios")+
+            '<div style="font-weight:700;margin-bottom:10px">¿En qué espacios necesita la AT?</div>'+
+            '<label class="checkbox"><input type="checkbox" name="indSpace" value="Hogar"> Hogar</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indSpace" value="Espacio educacional"> Espacio educacional</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indSpace" value="Espacio laboral"> Espacio laboral</label>'+
+            '<label class="checkbox"><input type="checkbox" name="indSpace" value="Espacios públicos comunitarios"> Espacios públicos comunitarios</label>'+
           '</div>'+
           '<div>'+
-            '<b>Espacio de mayor impacto</b>'+
-            radioHtml("indImpact","Hogar","Hogar",false)+
-            radioHtml("indImpact","Espacio educacional","Espacio educacional",true)+
-            radioHtml("indImpact","Espacio laboral","Espacio laboral",false)+
-            radioHtml("indImpact","Espacios públicos comunitarios","Espacios públicos comunitarios",false)+
+            '<div style="font-weight:700;margin-bottom:10px">Espacio de mayor impacto</div>'+
+            '<label class="checkbox"><input type="radio" name="indImpact" value="Hogar"> Hogar</label>'+
+            '<label class="checkbox"><input type="radio" name="indImpact" value="Espacio educacional" checked> Espacio educacional</label>'+
+            '<label class="checkbox"><input type="radio" name="indImpact" value="Espacio laboral"> Espacio laboral</label>'+
+            '<label class="checkbox"><input type="radio" name="indImpact" value="Espacios públicos comunitarios"> Espacios públicos comunitarios</label>'+
           '</div>'+
         '</div>'+
       '</div>'+
-
       '<div id="benefitNotes" class="tab-panel">'+
-        '<label>Observaciones del profesional</label>'+
-        '<textarea id="indNotes" rows="5"></textarea>'+
+        '<label>Observaciones de las áreas a beneficiar</label>'+
+        '<textarea id="indBenefitNotes" rows="4"></textarea>'+
       '</div>'+
+    '</fieldset>'+
+
+    '<fieldset>'+
+      '<legend>Observaciones</legend>'+
+      '<label>Observaciones del profesional</label>'+
+      '<textarea id="indNotes" rows="5"></textarea>'+
     '</fieldset>';
 
   openMain(
@@ -2438,11 +2663,14 @@ function radioHtml(name,value,label,checked){
   '</label>';
 }
 
-function renderIndicationSpecs(){
-  const type=document.getElementById("indType").value;
-  document.getElementById("indSpecs").innerHTML=
-    specificationOptions(type,[]);
-}
+function renderIndicationSpecs(){const type=document.getElementById("indType").value;const entries=SPECIFICATIONS[type]||[];const subtype=entries.find(x=>x[0]==="Subtipo");document.getElementById("indSubtypeBox").innerHTML=subtype?'<div><label class="required">Subtipo</label><select id="indSubtype" class="technical-spec" onchange="renderSpecialChair()">'+subtype[1].map(x=>'<option>'+x+'</option>').join('')+'</select></div>':'';document.getElementById("indSpecs").innerHTML=entries.filter(x=>x[0]!=="Subtipo").map(x=>'<div><label class="required">'+x[0]+'</label><select class="technical-spec">'+x[1].map(v=>'<option>'+v+'</option>').join('')+'</select></div>').join('');document.getElementById("indSpecsFrame").style.display=type?"":"none";renderSpecialChair();}
+function specialChoice(g,v,m){return '<div class="special-choices">'+v.map(x=>'<label><input type="'+(m?'checkbox':'radio')+'" name="sc_'+g+'" value="'+escapeAttribute(x)+'"> '+x+'</label>').join('')+'</div>'}
+function specialMeasures(v){return '<div class="special-measures">'+v.map(x=>'<label>'+x+' <input type="number" data-special-measure="'+escapeAttribute(x)+'"></label>').join('')+'</div>'}
+function specialRow(t,c){return '<div class="special-row"><strong>'+t+'</strong><div>'+c+'</div></div>'}
+function renderSpecialChair(){const c=document.getElementById('indSpecialChair');if(!c)return;const sub=document.getElementById('indSubtype');if(document.getElementById('indType').value!=="Silla de ruedas"||!sub||sub.value!=="ESPECIAL"){c.innerHTML='';return}c.innerHTML='<div class="special-chair"><h4>Tipo silla de ruedas especial</h4>'+specialRow('Configuración',specialChoice('config',['Estándar','Neurológica','Ultraliviana','Camilla','Otra'])+'<input type="text" placeholder="Otra configuración">')+'<h4>Especificaciones técnicas</h4>'+specialRow('Respaldo',specialChoice('respaldo',['Fijo','Reclinable'])+specialChoice('tela',['Tela estándar','Tela reforzada','Tela ajustable'])+specialMeasures(['Asiento-bajo escápula','Asiento-hombros','Hombro-cabeza']))+specialRow('Asiento',specialChoice('asiento',['Tela estándar','Tela reforzada'])+specialChoice('ancho',['30','33','36','39','42','45','Otro'])+specialChoice('profundidad',['30','33','36','40','45']))+specialRow('Apoya brazos',specialChoice('brazos',['Abatible largo','Abatible corto','Guardafango','Desmontable','Elevable','Cualquiera'])+specialMeasures(['Altura']))+specialRow('Soporte piernas',specialChoice('piernas',['Fijo','Desmontable','Elevable'])+specialMeasures(['Largo']))+specialRow('Apoya pies',specialChoice('pies',['Pinza','Telescópico','Pata de loro','Lona en banda','De una hoja']))+specialRow('Ruedas delanteras',specialChoice('delanteras',['Inflable aro 7','PU aro 7','PU aro 5']))+specialRow('Ruedas traseras',specialChoice('traseras',['Inflable aro 16','Inflable aro 24','PU aro 16','PU aro 24','Mountain Bike aro 24'])+specialChoice('extras',['Desmontable','Ruedas de tránsito'],true))+'<h4>Accesorios</h4>'+specialRow('Sujeción',specialChoice('sujecion',['Cinturón torácico','Lateral de tres puntas','Pechera camiseta'],true))+specialRow('Pelvis',specialChoice('pelvis',['Cinturón pélvico','Calzón sujeción','Calzón con arnés'],true))+specialRow('Cojines',specialChoice('cojines',['Abductor estándar','Cabezal en C','Cabezal recto','Respaldo','Asiento','Laterales','Abductor especial'],true))+specialRow('Otros',specialChoice('otros',['Bandeja o mesa','Tapa rayos','Bolsillo respaldo','Un antivuelco','Par de antivuelcos','Porta oxígeno','Bandeja Bi-pap'],true))+'</div>'}
+function readSpecialChair(){const c=document.getElementById('indSpecialChair');if(!c||!c.querySelector('.special-chair'))return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));const measures={};c.querySelectorAll('[data-special-measure]').forEach(i=>{if(i.value)measures[i.dataset.specialMeasure]=i.value});return {selections,measures}}
+function restoreSpecialChair(d){if(!d)return;const target=document.getElementById('evaluationSpecialChair');if(!target)return;const old=document.getElementById('indSpecialChair');if(old){target.innerHTML=old.innerHTML;Object.entries(d.selections||{}).forEach(([k,v])=>target.querySelectorAll('input[name="sc_'+k+'"]').forEach(i=>i.checked=v.includes(i.value)));}}
+function readEvaluatedSpecialChair(){const c=document.getElementById('evaluationSpecialChair');if(!c)return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));return {selections,measures:{}}}
 
 function renderIndicationTarget(){
   const type=document.getElementById("indType").value;
@@ -2461,15 +2689,18 @@ function readIndicationForm(){
     dependence:document.getElementById("indDependence").value,
     priority:document.getElementById("indPriority").value,
     date:document.getElementById("indDate").value,
+    clinicalOrigin:document.getElementById("indClinicalOrigin").value,
     definitive:document.querySelector('input[name="indDef"]:checked').value,
     deliverySource:(document.querySelector('input[name="indDeliverySource"]:checked')||{}).value||"NUEVA",
+    areas:Array.from(document.querySelectorAll('input[name="indArea"]:checked')).map(item=>item.value),
+    participation:Array.from(document.querySelectorAll('input[name="indParticipation"]:checked')).map(item=>item.value),
+    caregiverSupport:Array.from(document.querySelectorAll('input[name="indCaregiverSupport"]:checked')).map(item=>item.value),
+    spaces:Array.from(document.querySelectorAll('input[name="indSpace"]:checked')).map(item=>item.value),
+    impact:(document.querySelector('input[name="indImpact"]:checked')||{}).value||"",
+    benefitNotes:document.getElementById("indBenefitNotes")?.value||"",
     specs:Array.from(document.querySelectorAll(".technical-spec"))
       .map(item=>item.value),
-    areas:Array.from(document.querySelectorAll('input[name="indArea"]:checked'))
-      .map(item=>item.value),
-    spaces:Array.from(document.querySelectorAll('input[name="indSpace"]:checked'))
-      .map(item=>item.value),
-    impact:document.querySelector('input[name="indImpact"]:checked').value,
+    specialChair:readSpecialChair(),
     observations:document.getElementById("indNotes").value
   };
 }
@@ -2481,19 +2712,23 @@ function validateIndication(data){
     errors.push("Fecha de indicación");
   }
 
+  if(!data.clinicalOrigin){
+    errors.push("Actividad clínica donde se detecta la necesidad");
+  }
+
   if(data.date&&new Date(data.date)>new Date()){
     errors.push("La fecha de indicación no puede ser futura");
   }
 
   if(!data.areas.length){
-    errors.push("Debe seleccionar al menos un área a beneficiar");
+    errors.push("Seleccione al menos un área de actividad a beneficiar");
   }
 
   if(!data.spaces.length){
-    errors.push("Debe seleccionar al menos un espacio");
+    errors.push("Seleccione al menos un ámbito de participación a beneficiar");
   }
 
-  const duplicate=DB.indications.find(indication=>
+const duplicate=DB.indications.find(indication=>
     indication.patientId===currentPatientId&&
     indication.type===data.type&&
     !["Finalizada","Anulada","Suspendida"].includes(indication.state)
@@ -2539,25 +2774,23 @@ function showIndicationSummary(){
         summaryValue("Prioridad",data.priority)+
         summaryValue("Definitiva",data.definitive)+
         summaryValue("Modalidad de entrega",data.deliverySource==="REUTILIZADA"?"Silla de ruedas usada disponible":"Suministro estándar")+
+        summaryValue("Actividad clínica de origen",data.clinicalOrigin)+
         summaryValue("Derivación",getTarget(data.type))+
+        '<div style="grid-column:span 3">'+
+          '<b>Áreas a beneficiar:</b> '+(data.areas.length?data.areas.join(", "):"Sin selección")+
+        '</div>'+
+        '<div style="grid-column:span 3">'+
+          '<b>Ámbitos de participación:</b> '+(data.participation?.length?data.participation.join(", "):"Sin selección")+
+        '</div>'+
+        '<div style="grid-column:span 3">'+
+          '<b>Espacios donde necesita la AT:</b> '+(data.spaces.length?data.spaces.join(", "):"Sin selección")+
+        '</div>'+
+        '<div style="grid-column:span 3">'+
+          '<b>Impacto en cuidador / red de apoyo:</b> '+(data.impact||"Sin selección")+
+        '</div>'+
         '<div style="grid-column:span 3">'+
           '<b>Especificaciones:</b> '+data.specs.join(", ")+
         '</div>'+
-      '</div>'+
-    '</div>'+
-
-    '<div class="panel">'+
-      '<div class="panelTitle">Áreas a beneficiar</div>'+
-      '<div class="panelBody">'+
-        data.areas.map(area=>'<span class="chip">'+area+'</span>').join("")+
-      '</div>'+
-    '</div>'+
-
-    '<div class="panel">'+
-      '<div class="panelTitle">Espacios de impacto</div>'+
-      '<div class="panelBody">'+
-        data.spaces.map(space=>'<span class="chip">'+space+'</span>').join("")+
-        '<br><b>Mayor impacto:</b> '+data.impact+
       '</div>'+
     '</div>'+
 
@@ -2595,14 +2828,17 @@ function saveIndication(){
     doctor:USERS[currentProfile].name,
     date:data.date,
     type:data.type,
+    clinicalOrigin:data.clinicalOrigin,
     definitive:data.definitive,
     usage:data.usage,
     dependence:data.dependence,
     priority:data.priority,
-    specs:data.specs,
     areas:data.areas,
     spaces:data.spaces,
     impact:data.impact,
+    benefitNotes:data.benefitNotes,
+    specs:data.specs,
+    specialChair:data.specialChair,
     observations:data.observations,
     target:getTarget(data.type),
     indicationByProfile:currentProfile,
@@ -2640,19 +2876,43 @@ function saveIndication(){
   DB.indications.unshift(indication);
   selectedIndicationId=id;
 
+  const directToolbarFlow=!!toolbarAtFlowContext;
+  if(directToolbarFlow){
+    /* La actividad seleccionada forma parte del origen de esta atención.
+       No se crea una agenda nueva: se reutiliza la actividad existente. */
+    indication.clinicalActivity=toolbarAtFlowContext.activity;
+    indication.sourceAppointmentId=toolbarAtFlowContext.appointmentId;
+    indication.evaluation={
+      notes:"Necesidad de Ayuda Técnica detectada durante la actividad clínica: "+
+        toolbarAtFlowContext.activity,
+      recommendations:"",
+      limitations:""
+    };
+  }
+
   persist();
   closeMain();
   renderIndications();
   renderAdmin();
 
+  if(directToolbarFlow){
+    toolbarAtFlowContext=null;
+    /* Flujo solicitado: Indicación → Evolución → Prestaciones.
+       Se reutiliza el modal de evolución y luego el modal de prestaciones
+       existentes, sin crear versiones paralelas de estos componentes. */
+    openEvolution("evaluation",0);
+    return;
+  }
+
   showMessage(
     "Indicación registrada.<br>"+
     "<b>Correlativo:</b> "+id+"<br>"+
     "<b>Derivación:</b> "+indication.target+"<br>"+
+    "<b>Actividad clínica de origen:</b> "+indication.clinicalOrigin+"<br>"+
     (indication.usedChairRequested
       ?"<b>Modalidad:</b> ♻️ Silla de ruedas usada disponible para reutilización.<br>"
       :"")+
-    "<br>Siguiente paso: corresponde continuar con la evaluación y actividades del flujo."
+    "<br>La necesidad de ayuda técnica puede detectarse durante esta atención clínica. La indicación queda en estado <b>Indicada</b> y no se agenda automáticamente una evaluación exclusiva de AT."
   );
 }
 
@@ -2661,9 +2921,10 @@ function saveIndication(){
 ================================================================ */
 function openActivity(kind){
   const indication=getSelectedIndication();
+  const patient=getCurrentPatient();
 
-  if(!indication){
-    showMessage("Seleccione una indicación.");
+  if(!patient){
+    showMessage("Seleccione un paciente para registrar la actividad.");
     return;
   }
 
@@ -2674,21 +2935,50 @@ function openActivity(kind){
     return;
   }
 
-  let defaultActivity="Evaluación ayuda técnica (30)";
+  const genericActivities=[
+    "Control médico",
+    "Tratamiento",
+    "Sesión de Kinesiología",
+    "Sesión de Terapia Ocupacional",
+    "Sesión de Fonoaudiología",
+    "Control / seguimiento",
+    "Visita domiciliaria",
+    "Otra actividad clínica"
+  ];
 
-  if(kind==="delivery"||
-     ["Evaluada","Chequeo conforme"].includes(indication.state)){
+  let defaultActivity=indication
+    ?"Evaluación ayuda técnica (30)"
+    :"Control / seguimiento";
+
+  if(indication && (kind==="delivery" ||
+     ["Evaluada","Chequeo conforme"].includes(indication.state))){
     defaultActivity="Entrega ayuda técnica (30)";
   }
 
   const body=
+    '<div class="message info" style="margin-bottom:8px">'+
+      '<b>Paciente:</b> '+patient.id+' - '+patient.name+
+      '<br><span class="small">Puede crear una actividad clínica normal para probar el flujo de Agenda y, posteriormente, iniciar una indicación de AT desde esa actividad.</span>'+
+    '</div>'+
     '<label class="required">Actividad</label>'+
     '<select id="activityType">'+
+      genericActivities.map(function(value){return activityOption(value,defaultActivity);}).join("")+
+      '<option disabled>──────── Ayudas Técnicas ────────</option>'+
       activityOption("Entrega ayuda técnica (15 min)",defaultActivity)+
       activityOption("Entrega ayuda técnica (30)",defaultActivity)+
       activityOption("Evaluación ayuda técnica (30)",defaultActivity)+
       activityOption("Evaluación y entrega ayuda técnica (30)",defaultActivity)+
     '</select>'+
+
+    '<div style="margin-top:8px">'+
+      '<label class="required">Profesional</label>'+
+      '<select id="activityProfessional">'+
+        '<option>Diego Rocha</option>'+
+        '<option>Ximena López</option>'+
+        '<option>Karen Morales</option>'+
+        '<option>Cesar Jimenez</option>'+
+      '</select>'+
+    '</div>'+
 
     '<div class="grid g2" style="margin-top:8px">'+
       '<div>'+
@@ -2738,9 +3028,15 @@ function activityOption(value,selected){
 
 function saveActivity(schedule){
   const indication=getSelectedIndication();
+  const patient=getCurrentPatient();
   const activity=document.getElementById("activityType").value;
   const date=document.getElementById("activityDate").value;
   const time=document.getElementById("activityTime").value;
+
+  if(!patient){
+    showMessage("Seleccione un paciente para registrar la actividad.");
+    return;
+  }
 
   if(schedule&&(!date||!time)){
     showMessage(
@@ -2750,34 +3046,49 @@ function saveActivity(schedule){
   }
 
   const text=activity.toLowerCase();
+  const genericActivities=[
+    "control médico",
+    "tratamiento",
+    "sesión de kinesiología",
+    "sesión de terapia ocupacional",
+    "sesión de fonoaudiología",
+    "control / seguimiento",
+    "visita domiciliaria",
+    "otra actividad clínica"
+  ];
+  const isGenericActivity=genericActivities.includes(text);
 
-  let kind="evaluation";
+  let kind=isGenericActivity?"clinical":"evaluation";
 
-  if(text.includes("entrega")&&!text.startsWith("evaluación")){
+  if(!isGenericActivity && text.includes("entrega")&&!text.startsWith("evaluación")){
     kind="delivery";
   }
 
-  if(text.includes("evaluación y entrega")){
-    kind=indication.state==="Evaluada"
-      ?"delivery"
-      :"evaluation";
+  if(!isGenericActivity && text.includes("evaluación y entrega")){
+    kind="evaluation_delivery";
+  }
+
+  if(!isGenericActivity && !indication){
+    showMessage("Las actividades de Ayudas Técnicas requieren una indicación existente. Para probar el flujo solicitado utilice una actividad clínica normal.");
+    return;
   }
 
   if(schedule){
     DB.appointments.push({
       id:DB.nextAppointment++,
-      indicationId:indication.id,
-      patientId:indication.patientId,
+      indicationId:isGenericActivity?null:indication.id,
+      patientId:patient.id,
       date:date,
       time:time,
       activity:activity,
-      area:indication.target,
+      area:isGenericActivity?USERS[currentProfile].specialty:indication.target,
       kind:kind,
+      professional:document.getElementById("activityProfessional").value,
       notes:document.getElementById("activityNotes").value,
       state:"Agendada"
     });
 
-    if(kind==="evaluation"){
+    if(kind==="evaluation" && indication){
       indication.state="Agendada";
     }
 
@@ -2815,13 +3126,20 @@ function renderAgenda(){
     appointment=>appointment.date===date
   );
 
+  // Si la selección anterior ya no pertenece a la fecha visible, se limpia.
+  if(!appointments.some(item=>item.id===Number(selectedAgendaAppointmentId))){
+    selectedAgendaAppointmentId=null;
+  }
+
   document.getElementById("agendaBody").innerHTML=
     appointments.length
     ?appointments.map(appointment=>{
       const patient=getPatient(appointment.patientId);
       const delivery=appointment.kind==="delivery";
+      const selected=Number(selectedAgendaAppointmentId)===Number(appointment.id);
 
-      return '<tr class="'+(delivery?"delivery-row":"")+'">'+
+      return '<tr class="'+(delivery?"delivery-row ":"")+(selected?"selected":"")+'" '+
+        'onclick="selectAgendaAppointment('+appointment.id+')">'+
         '<td>'+appointment.time+'</td>'+
         '<td>'+
           '<span class="agenda-tag '+(delivery?"delivery":"")+'">'+
@@ -2829,7 +3147,7 @@ function renderAgenda(){
           '</span>'+
           appointment.activity+
           ' <button class="clip" title="Abrir atención" '+
-          'onclick="openAgendaAppointment('+appointment.id+')">📎</button>'+
+          'onclick="openExistingAgendaAppointment('+appointment.id+')">📎</button>'+
         '</td>'+
         '<td>'+patient.id+' - '+patient.name+'</td>'+
         '<td>'+patient.diagnosis+'</td>'+
@@ -2841,13 +3159,111 @@ function renderAgenda(){
     :'<tr><td colspan="7" class="empty">'+
       'Sin actividades agendadas para esta fecha.'+
     '</td></tr>';
+
+  const agendaButton=document.getElementById("agendaAtActivityPatient");
+  if(agendaButton){
+    agendaButton.disabled=!selectedAgendaAppointmentId;
+  }
 }
+
+function selectAgendaAppointment(appointmentId){
+  const appointment=DB.appointments.find(
+    item=>item.id===Number(appointmentId)
+  );
+
+  if(!appointment){
+    selectedAgendaAppointmentId=null;
+    renderAgenda();
+    return;
+  }
+
+  selectedAgendaAppointmentId=appointment.id;
+
+  const patient=getPatient(appointment.patientId);
+  if(patient){
+    currentPatientId=patient.id;
+    document.getElementById("searchInput").value=patient.name;
+  }
+
+  renderAgenda();
+}
+
+function startAgendaAtToolbarFlow(){
+  const appointment=DB.appointments.find(
+    item=>item.id===Number(selectedAgendaAppointmentId)
+  );
+
+  if(!appointment){
+    showMessage("Seleccione un paciente en la grilla de agenda.");
+    return;
+  }
+
+  const patient=getPatient(appointment.patientId);
+  if(!patient){
+    showMessage("No se encontró el paciente asociado a la actividad.");
+    return;
+  }
+
+  currentPatientId=patient.id;
+  selectedIndicationId=null;
+  selectedAdminId=null;
+
+  // La actividad seleccionada queda como origen de la atención clínica.
+  // No se crea una nueva agenda: se reutiliza la actividad existente.
+  toolbarAtFlowContext={
+    appointmentId:appointment.id,
+    activity:appointment.activity
+  };
+
+  document.getElementById("searchInput").value=patient.name;
+  openIndication();
+}
+
+document.getElementById("agendaAtActivityPatient")
+  .addEventListener("click",startAgendaAtToolbarFlow);
+
+function openDirectActivity(){if(!["TO","KI","TI"].includes(currentProfile)){showMessage("Para evaluar o entregar seleccione perfil TO, KI o Administrador TO/KI.");return}const body='<div class="message info">Seleccione la actividad y el paciente. No se creará una agenda previa.</div><label class="required">Actividad</label><select id="directKind" onchange="renderDirectPatients()"><option value="evaluation">Evaluación ayuda técnica</option><option value="delivery">Entrega ayuda técnica</option></select><label class="required" style="margin-top:8px">Paciente e indicación</label><select id="directIndication"></select>';openMain("Actividad y paciente · Sin agenda previa",body,'<button class="btn gray" onclick="closeMain()">Cerrar</button> <button class="btn red" onclick="startDirectActivity()">Iniciar atención</button>',"small");renderDirectPatients()}
+function renderDirectPatients(){const k=document.getElementById('directKind').value;const a=DB.indications.filter(x=>k==='evaluation'?["Indicada","Agendada"].includes(x.state):["Evaluada","Chequeo conforme"].includes(x.state));document.getElementById('directIndication').innerHTML='<option value="">Seleccione paciente e indicación</option>'+a.map(x=>{const p=getPatient(x.patientId);return '<option value="'+x.id+'">'+p.id+' - '+p.name+' · '+x.type+' ('+x.state+')</option>'}).join('')}
+function startDirectActivity(){const i=getIndication(Number(document.getElementById('directIndication').value));const k=document.getElementById('directKind').value;if(!i){showMessage("Seleccione un paciente y su indicación.");return}currentPatientId=i.patientId;selectedIndicationId=i.id;selectedAdminId=i.id;renderContext();const profile=profileForTarget(i.target);currentProfile=profile;document.getElementById('perfil').value=profile;updateProfile();if(k==='evaluation')openEvaluation(0);else openEvolution('delivery',0)}
 
 /* ================================================================
    CORRECCIÓN DEL FLUJO:
    AGENDA -> CLIP -> PERFIL TO/KI -> FORMULARIO EVALUACIÓN
 ================================================================ */
 function openAgendaAppointment(appointmentId){
+  openExistingAgendaAppointment(appointmentId);
+}
+
+function startAgendaAtEvaluation(appointmentId){
+  const appointment=DB.appointments.find(item=>item.id===Number(appointmentId));
+  if(!appointment){
+    showMessage("No se encontró la actividad agendada.");
+    return;
+  }
+
+  const patient=getPatient(appointment.patientId);
+  if(!patient){
+    showMessage("No se encontró el paciente asociado a la actividad.");
+    return;
+  }
+
+  currentPatientId=patient.id;
+  selectedIndicationId=null;
+  selectedAdminId=null;
+  toolbarAtFlowContext={
+    appointmentId:appointment.id,
+    activity:appointment.activity
+  };
+
+  document.getElementById("searchInput").value=patient.name;
+  renderContext();
+  closeMain();
+  openIndication();
+}
+
+/* Mantiene el flujo de atención existente para actividades que ya tienen
+   indicación AT asociada. */
+function openExistingAgendaAppointment(appointmentId){
   const appointment=DB.appointments.find(
     item=>item.id===Number(appointmentId)
   );
@@ -2878,7 +3294,7 @@ function openAgendaAppointment(appointmentId){
   document.getElementById("perfil").value=requiredProfile;
   updateProfile();
 
-  if(appointment.kind==="evaluation"){
+  if(["evaluation","evaluation_delivery"].includes(appointment.kind)){
     if(!["Indicada","Agendada","Evaluada"].includes(indication.state)){
       showMessage(
         "No se puede abrir una evaluación para una indicación en estado "+
@@ -2983,6 +3399,7 @@ function openEvaluation(appointmentId){
       '<div class="grid g4" id="evaluationSpecs">'+
         specificationOptions(indication.type,indication.specs)+
       '</div>'+
+      (indication.specialChair?'<div id="evaluationSpecialChair" class="special-chair"></div>':'')+
       '<div class="grid g2" style="margin-top:10px">'+
         '<div>'+
           '<label class="required">¿La AT indicada es adecuada?</label>'+
@@ -3000,83 +3417,13 @@ function openEvaluation(appointmentId){
     '</fieldset>'+
 
     '<fieldset>'+
-      '<legend>Áreas a beneficiar con la ayuda técnica</legend>'+
-
-      '<div class="tabs">'+
-        '<button class="tab-button active" onclick="switchTab(this,\'evalCif\')">'+
-          'Formulario CIF'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'evalBarriers\')">'+
-          'Barreras físicas/ambientales'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'evalSpaces\')">'+
-          'Validación de espacios'+
-        '</button>'+
-        '<button class="tab-button" onclick="switchTab(this,\'evalNotes\')">'+
-          'Observaciones evaluación'+
-        '</button>'+
-      '</div>'+
-
-      '<div id="evalCif" class="tab-panel active">'+
-        '<p>¿Puede el paciente o familia transportar la ayuda técnica?</p>'+
-        radioHtml("cifTransport","Sí","Sí",true)+
-        radioHtml("cifTransport","No","No",false)+
-
-        '<p>¿Requiere asistencia de terceros?</p>'+
-        radioHtml("cifHelp","Sí","Sí",false)+
-        radioHtml("cifHelp","No","No",true)+
-
-        '<p>¿Se desplaza adecuadamente con el equipo indicado?</p>'+
-        radioHtml("cifMove","Sí","Sí",true)+
-        radioHtml("cifMove","No","No",false)+
-      '</div>'+
-
-      '<div id="evalBarriers" class="tab-panel">'+
-        checkboxHtml("evalBarrier","Accesos con escalones / sin rampa","Accesos con escalones / sin rampa")+
-        checkboxHtml("evalBarrier","Ancho de puertas insuficiente","Ancho de puertas insuficiente")+
-        checkboxHtml("evalBarrier","Superficie irregular","Superficie irregular")+
-        checkboxHtml("evalBarrier","Vivienda en altura sin ascensor","Vivienda en altura sin ascensor")+
-        checkboxHtml("evalBarrier","Sin barreras relevantes","Sin barreras relevantes")+
-        '<label>Descripción de barreras</label>'+
-        '<textarea id="evalBarrierText" rows="3"></textarea>'+
-      '</div>'+
-
-      '<div id="evalSpaces" class="tab-panel">'+
-        '<div class="small">Espacios indicados por el médico:</div>'+
-        indication.spaces.map(
-          space=>'<label class="checkbox">'+
-            '<input type="checkbox" checked disabled>'+space+
-          '</label>'
-        ).join("")+
-        '<div class="grid g2" style="margin-top:8px">'+
-          '<div>'+
-            '<label class="required">¿El espacio es adecuado?</label>'+
-            '<select id="evalSpaceAdequate">'+
-              '<option>Sí</option>'+
-              '<option>No</option>'+
-              '<option>Parcialmente</option>'+
-            '</select>'+
-          '</div>'+
-          '<div>'+
-            '<label class="required">Tipo de espacio</label>'+
-            '<select id="evalSpaceType">'+
-              options(
-                ["Hogar","Espacio educacional","Espacio laboral","Espacio público comunitario"],
-                indication.impact
-              )+
-            '</select>'+
-          '</div>'+
-        '</div>'+
-      '</div>'+
-
-      '<div id="evalNotes" class="tab-panel">'+
-        '<label class="required">Notas clínicas del evaluador</label>'+
-        '<textarea id="evalClinicalNotes" rows="3"></textarea>'+
-        '<label style="margin-top:7px">Recomendaciones técnicas</label>'+
-        '<textarea id="evalRecommendations" rows="3"></textarea>'+
-        '<label style="margin-top:7px">Limitaciones o consideraciones especiales</label>'+
-        '<textarea id="evalLimitations" rows="3"></textarea>'+
-      '</div>'+
+      '<legend>Observaciones de evaluación</legend>'+
+      '<label class="required">Notas clínicas del evaluador</label>'+
+      '<textarea id="evalClinicalNotes" rows="3"></textarea>'+
+      '<label style="margin-top:7px">Recomendaciones técnicas</label>'+
+      '<textarea id="evalRecommendations" rows="3"></textarea>'+
+      '<label style="margin-top:7px">Limitaciones o consideraciones especiales</label>'+
+      '<textarea id="evalLimitations" rows="3"></textarea>'+
     '</fieldset>';
 
   openMain(
@@ -3123,7 +3470,7 @@ function saveEvaluation(appointmentId){
 
   if(!notes){
     showMessage(
-      "Las notas clínicas son obligatorias. Complete la pestaña Observaciones evaluación."
+      "Las notas clínicas son obligatorias. Complete las notas de evaluación."
     );
     return;
   }
@@ -3141,6 +3488,7 @@ function saveEvaluation(appointmentId){
   indication.specs=
     Array.from(document.querySelectorAll(".technical-spec"))
       .map(item=>item.value);
+  if(indication.specialChair)indication.specialChair=readEvaluatedSpecialChair();
 
   indication.usage=
     document.getElementById("evalUsage").value;
@@ -3163,17 +3511,9 @@ function saveEvaluation(appointmentId){
   indication.evaluationDate=date;
 
   indication.evaluation={
-    adequate:document.getElementById("evalSpaceAdequate").value,
-    spaceType:document.getElementById("evalSpaceType").value,
     notes:notes,
-    recommendations:
-      document.getElementById("evalRecommendations").value,
-    limitations:
-      document.getElementById("evalLimitations").value,
-    barriers:
-      Array.from(
-        document.querySelectorAll('input[name="evalBarrier"]:checked')
-      ).map(item=>item.value)
+    recommendations:document.getElementById("evalRecommendations").value,
+    limitations:document.getElementById("evalLimitations").value
   };
 
   const appointment=DB.appointments.find(
@@ -3181,7 +3521,9 @@ function saveEvaluation(appointmentId){
   );
 
   if(appointment){
-    appointment.state="Realizada";
+    appointment.state=appointment.kind==="evaluation_delivery"
+      ?"En proceso"
+      :"Realizada";
   }
 
   if(inadequate){
@@ -3503,18 +3845,32 @@ function savePrestations(){
       appointment.state="Realizada";
     }
 
-    indication.state="Chequeo conforme";
-    indication.contractState="SOLICITADO";
+    if(requiresComodato(indication.type)){
+      indication.state="Chequeo conforme";
+      indication.contractState="SOLICITADO";
+    }else{
+      indication.state="Finalizada";
+      indication.contractState="";
+      indication.finState="ENTREGADO";
+      indication.deliveryDate=today();
+    }
 
+    /* Fuerza la actualización inmediata del contexto del paciente y de los
+       tres escritorios para que el estado Finalizada se refleje sin recargar. */
+    currentPatientId=indication.patientId;
+    selectedIndicationId=indication.id;
     persist();
     closeMain();
+    renderContext();
     renderIndications();
     renderAdmin();
     renderAgenda();
+    updatePatientToolbar();
 
     showMessage(
-      "Prestaciones registradas y chequeo conforme. "+
-      "Administrador TO/KI puede realizar la prevalidación de entrega."
+      requiresComodato(indication.type)
+        ?"Prestaciones registradas y chequeo conforme. Administrador TO/KI puede realizar la prevalidación de entrega."
+        :"Prestaciones registradas y entrega finalizada. Esta ayuda técnica no requiere contrato de comodato."
     );
 
     return;
@@ -3544,23 +3900,35 @@ function savePrestations(){
   }
 
   if(stock){
-    if(stock){
-      indication.state="Evaluada";
-      indication.stockReady=true;
-      indication.finState="SOLICITUD DE CONSUMO";
+    indication.state="Evaluada";
+    indication.stockReady=true;
+    indication.finState="SOLICITUD DE CONSUMO";
 
-      createOrder("CON",indication);
+    createOrder("CON",indication);
+
+    const evaluationAppointment=DB.appointments.find(
+      item=>item.id===Number(evolutionContext.appointmentId)
+    );
+    const combinedActivity=evaluationAppointment&&evaluationAppointment.kind==="evaluation_delivery";
+
+    if(combinedActivity){
+      evaluationAppointment.state="En proceso";
+    }
 
     persist();
     closeMain();
     renderIndications();
     renderAdmin();
+    renderAgenda();
 
+    if(combinedActivity){
+      openEvolution("delivery",evaluationAppointment.id);
+    }else{
       showMessage(
         "Prestaciones registradas. "+
         (indication.usedChairCode
           ?"La silla usada fue reservada para esta indicación.<br>"
-          :"El artículo está disponible.<br>")+
+          :"El artículo está disponible.<br>")+ 
         "Debe crear y agendar la actividad <b>Entrega ayuda técnica</b>.",
         function(){
           currentProfile="TI";
@@ -3574,7 +3942,7 @@ function savePrestations(){
   if(!stock){
     indication.state="Lista de Espera";
     indication.stockReady=false;
-    indication.contractState="SOLICITADO";
+    indication.contractState=requiresComodato(indication.type)?"SOLICITADO":"";
 
     if(wantsReturnedChair){
       indication.finState="ESPERA REUTILIZACIÓN";
@@ -3659,30 +4027,8 @@ function indicationDetailHtml(indication,patient){
         indication.deliverySource==="REUTILIZADA"
           ?"Silla de ruedas usada disponible"
           :"Suministro estándar")+
+      summaryValue("Actividad clínica de origen",indication.clinicalOrigin||"No informado")+
       summaryValue("Estado",indication.state)+
-    '</div>'+
-  '</div>'+
-
-  '<div class="panel">'+
-    '<div class="panelTitle">Áreas a Beneficiar</div>'+
-    '<div class="panelBody">'+
-      indication.areas.map(
-        area=>'<span class="chip">☑ '+area+'</span>'
-      ).join("")+
-    '</div>'+
-  '</div>'+
-
-  '<div class="panel">'+
-    '<div class="panelTitle">Evaluación del Espacio</div>'+
-    '<div class="panelBody">'+
-      '<b>Espacios:</b> '+indication.spaces.join(", ")+'<br>'+
-      '<b>Mayor impacto:</b> '+indication.impact+
-      (
-        indication.evaluation
-        ?'<br><b>Adecuado:</b> '+indication.evaluation.adequate+
-         ' · '+indication.evaluation.spaceType
-        :""
-      )+
     '</div>'+
   '</div>'+
 
@@ -3861,9 +4207,6 @@ function openHistoryDetail(id){
       '<tr><td><b>Fecha indicación</b></td><td>'+formatDate(indication.date)+'</td></tr>'+
       '<tr><td><b>Profesional</b></td><td>'+indication.doctor+'</td></tr>'+
       '<tr><td><b>Especialidad</b></td><td>'+indication.target+'</td></tr>'+
-      '<tr><td><b>Áreas a beneficiar</b></td><td>'+
-        indication.areas.map(area=>"☑ "+area).join("<br>")+
-      '</td></tr>'+
       '<tr><td><b>Observaciones</b></td><td>'+
         (indication.observations||"—")+
       '</td></tr>'+
@@ -4063,9 +4406,9 @@ function renderAdmin(){
         '<td>'+stateBadge(indication.contractState,"contract")+'</td>'+
         '<td>'+stateBadge(indication.finState,"fin")+'</td>'+
         '<td style="white-space:nowrap">'+
-          '<button class="mini blue" onclick="event.stopPropagation();openAdminContract('+indication.id+')">'+
-            'Ver contrato'+
-          '</button>'+
+          (requiresComodato(indication.type)
+            ?'<button class="mini blue" onclick="event.stopPropagation();openAdminContract('+indication.id+')">Ver contrato</button>'
+            :'<button class="mini" style="background:#999" disabled>Sin contrato</button>')+
           '<button class="mini red-outline" onclick="event.stopPropagation();openAdminIndication('+indication.id+')">'+
             'Ver indicación'+
           '</button>'+
@@ -4125,7 +4468,7 @@ function updateAdminToolbar(){
     !(
       indication&&
       ti&&
-      indication.type==="Silla de ruedas"&&
+      requiresComodato(indication.type)&&
       indication.contractState==="EMITIDO"&&
       indication.finState!=="DEVUELTO"
     );
@@ -4186,6 +4529,11 @@ function openAdminContract(id){
   selectAdmin(id);
 
   const indication=getIndication(id);
+
+  if(!requiresComodato(indication.type)){
+    showMessage("La ayuda técnica "+indication.type+" no requiere contrato de comodato ni documento de firma.");
+    return;
+  }
 
   if(
     ["EMITIDO","ENTREGADO"].includes(indication.contractState)||
@@ -4319,6 +4667,10 @@ function saveContact(){
   }
 }
 
+function requiresComodato(type){
+  return ["Silla de ruedas","Carro andador"].includes(type);
+}
+
 /* ================================================================
    PREVALIDACIÓN Y CONTRATO
 ================================================================ */
@@ -4329,6 +4681,11 @@ function openPrevalidation(){
 
   if(!indication){
     showMessage("Seleccione una indicación.");
+    return;
+  }
+
+  if(!requiresComodato(indication.type)){
+    showMessage("Esta ayuda técnica no requiere contrato de comodato ni firma de contrato.");
     return;
   }
 
@@ -4484,6 +4841,11 @@ function savePrevalidation(){
     getSelectedIndication()||
     getIndication(selectedAdminId);
 
+  if(!requiresComodato(indication.type)){
+    showMessage("Esta ayuda técnica no requiere contrato de comodato.");
+    return;
+  }
+
   const required=[
     ["pvStart","Fecha Contrato"],
     ["pvEnd","Fecha Expiración"],
@@ -4553,6 +4915,11 @@ function savePrevalidation(){
 }
 
 function openContract(indication){
+  if(!requiresComodato(indication.type)){
+    showMessage("La ayuda técnica "+indication.type+" no requiere contrato de comodato ni documento de firma.");
+    return;
+  }
+
   if(!indication.contract){
     const end=new Date();
     end.setFullYear(end.getFullYear()+2);
@@ -4646,89 +5013,62 @@ function monthsSince(dateStr){
 
 function openReturn(){
   const indication=getIndication(selectedAdminId);
-
-  if(!indication){
-    return;
+  if(!indication)return;
+  if(!requiresComodato(indication.type)){
+    showMessage("Sólo las sillas de ruedas y carros andadores admiten contrato de comodato y devolución.");return;
   }
-
-  if(indication.type!=="Silla de ruedas"){
-    showMessage(
-      "Sólo las sillas de ruedas se devuelven. "+
-      "Este artículo ("+indication.type+") no admite devolución."
-    );
-    return;
-  }
-
   if(indication.contractState!=="EMITIDO"){
-    showMessage(
-      "La devolución se habilita sólo cuando el contrato está EMITIDO."
-    );
-    return;
+    showMessage("La devolución se habilita sólo cuando el contrato está EMITIDO.");return;
   }
-
   if(indication.finState==="DEVUELTO"){
-    showMessage("Esta silla de ruedas ya fue devuelta.");
-    return;
+    showMessage("Esta ayuda técnica ya fue devuelta.");return;
   }
-
-  const months=monthsSince(
-    indication.deliveryDate||indication.contract&&indication.contract.start
-  );
+  const patient=getPatient(indication.patientId);
+  if(!patient){showMessage("No se encontraron los datos del paciente.");return;}
+  const contract=indication.contract||{};
+  const months=monthsSince(indication.deliveryDate||contract.start);
   const eligible=months!==null&&months>=24;
-
-  const antiquity=
-    months===null
-    ?"Sin fecha de entrega registrada"
-    :Math.floor(months/12)+" año(s) y "+(months%12)+" mes(es) de uso";
-
-  openMain(
-    "Devolución de Silla de Ruedas",
-
-    '<div class="note" style="margin-bottom:8px">'+
-      '<b>Antigüedad:</b> '+antiquity+'<br>'+
-      (
-        eligible
-        ?'<span style="color:#2e7d32;font-weight:bold">'+
-          'Cumple más de 2 años: se puede entregar una nueva silla de ruedas.'+
-         '</span>'
-        :'<span style="color:#d32f2f;font-weight:bold">'+
-          'Menos de 2 años: requiere autorización especial para entregar una nueva.'+
-         '</span>'
-      )+
-    '</div>'+
-
-    '<label>Artículo</label>'+
-    '<input id="returnArticle" value="'+indication.type+'" readonly>'+
-
-    '<label class="required" style="margin-top:7px">'+
-      'N° de serie'+
-    '</label>'+
-    '<input id="returnSerial">'+
-
-    '<label style="margin-top:7px">Cantidad</label>'+
-    '<input type="number" id="returnQuantity" value="1" min="1">'+
-
-    (
-      eligible
-      ?''
-      :'<label class="required" style="margin-top:7px">'+
-         'Autorización especial (menos de 2 años)'+
-       '</label>'+
-       '<input id="returnAuthCode" placeholder="N° resolución / autoriza">'
-    )+
-
-    '<label class="required" style="margin-top:7px">'+
-      'Observaciones'+
-    '</label>'+
-    '<textarea id="returnNotes" rows="4"></textarea>',
-
+  const antiquity=months===null?"Sin fecha de entrega registrada":Math.floor(months/12)+" año(s) y "+(months%12)+" mes(es) de uso";
+  const knownCode=indication.usedChairCode||indication.articleCode||indication.barcode||"";
+  const body=
+    '<div class="panel"><div class="panel-title">Datos paciente</div><div class="panel-body grid g3">'+
+      formRead("Nombre",patient.id+" - "+patient.name)+
+      formRead("Edad",calculateAge(patient.birth))+
+      formRead("Instituto",patient.institute)+
+      formRead("Estado",patient.active?"E - ACTIVO":"INACTIVO")+
+      formRead("Diagnóstico específico",patient.diagnosis)+
+      formRead("Condición funcional",patient.functional||"No informado")+
+      formRead("Dirección",patient.address||"No informada")+
+      formRead("Teléfono",patient.phone||"No informado")+
+      formRead("Representante legal registrado",contract.receiver||"No registrado")+
+    '</div></div>'+
+    '<div class="panel"><div class="panel-title">Datos tutor o acompañante que realiza la devolución</div><div class="panel-body grid g3">'+
+      '<div><label class="required">Nombre</label><input id="returnTutorName" value="'+escapeAttribute(contract.receiver||"")+'"></div>'+
+      '<div><label class="required">RUT</label><input id="returnTutorRut" value="'+escapeAttribute(contract.receiverRut||"")+'"></div>'+
+      '<div><label>Domicilio</label><input id="returnTutorAddress" value="'+escapeAttribute(contract.address||patient.address||"")+'"></div>'+
+      '<div><label>Región</label><input id="returnTutorRegion" value="'+escapeAttribute(contract.region||"")+'"></div>'+
+      '<div><label>Comuna</label><input id="returnTutorCommune" value="'+escapeAttribute(contract.commune||"")+'"></div>'+
+      '<div><label class="required">Parentesco o vínculo</label><input id="returnTutorRelationship" value="'+escapeAttribute(contract.relationship||"")+'"></div>'+
+      '<div><label>Teléfono</label><input id="returnTutorPhone" value="'+escapeAttribute(contract.phone||"")+'"></div>'+
+    '</div></div>'+
+    '<div class="panel"><div class="panel-title">Datos devolución</div><div class="panel-body">'+
+      '<div class="grid g3">'+
+        formRead("Fecha devolución",formatDate(today()))+
+        formRead("Artículo devuelto",indication.type+" · "+(indication.specs||[]).join(", "))+
+        formRead("Estado del artículo","EN DEVOLUCIÓN")+
+      '</div>'+
+      '<label class="required" style="margin-top:8px">Código de barra artículo / N° de serie</label>'+
+      '<input id="returnSerial" value="'+escapeAttribute(knownCode)+'" placeholder="Ingrese el código del artículo devuelto">'+
+      '<label style="margin-top:8px">Cantidad</label><input type="number" id="returnQuantity" value="1" min="1" readonly>'+ 
+      '<div class="message info" style="margin-top:8px"><b>Antigüedad:</b> '+antiquity+'<br>'+
+        (eligible?'Cumple más de 2 años: se puede entregar una nueva ayuda técnica.':'Menos de 2 años: requiere autorización especial para entregar una nueva ayuda técnica.')+
+      '</div>'+
+      (eligible?'':'<label class="required">Autorización especial (menos de 2 años)</label><input id="returnAuthCode" placeholder="N° resolución / autoriza">')+
+      '<label class="required" style="margin-top:8px">Comentarios</label><textarea id="returnNotes" rows="4"></textarea>'+
+    '</div></div>';
+  openMain("Devolución de artículos",body,
     '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
-    '<button class="btn red" onclick="saveReturn('+(eligible?"true":"false")+')">'+
-      'Registrar devolución'+
-    '</button>',
-
-    "small"
-  );
+    '<button class="btn red" onclick="saveReturn('+(eligible?"true":"false")+')">Registrar devolución</button>',"large");
 }
 
 function saveReturn(eligible){
@@ -4746,13 +5086,37 @@ function saveReturn(eligible){
 
   if(!eligible&&!auth){
     showMessage(
-      "La silla tiene menos de 2 años: debe registrar la autorización especial."
+      "La ayuda técnica tiene menos de 2 años: debe registrar la autorización especial."
     );
     return;
   }
 
   const indication=getIndication(selectedAdminId);
-
+  if(!indication||!requiresComodato(indication.type)||
+      indication.contractState!=="EMITIDO"||indication.finState==="DEVUELTO"){
+    showMessage("La ayuda técnica no está habilitada para devolución.");return;
+  }
+  if((DB.articles||[]).some(article=>article.code===serial)){
+    showMessage("El código de barra ya existe en el inventario. Verifique el artículo antes de registrar la devolución.");return;
+  }
+  const tutor={
+    name:document.getElementById("returnTutorName").value.trim(),
+    rut:document.getElementById("returnTutorRut").value.trim(),
+    address:document.getElementById("returnTutorAddress").value.trim(),
+    region:document.getElementById("returnTutorRegion").value.trim(),
+    commune:document.getElementById("returnTutorCommune").value.trim(),
+    relationship:document.getElementById("returnTutorRelationship").value.trim(),
+    phone:document.getElementById("returnTutorPhone").value.trim()
+  };
+  if(!tutor.name||!tutor.rut||!tutor.relationship){
+    showMessage("Indique nombre, RUT y parentesco o vínculo del tutor o acompañante que realiza la devolución.");return;
+  }
+  const rut=tutor.rut.replace(/\./g,"").replace(/\s/g,"");
+  if(!/^[0-9]{7,8}-?[0-9kK]$/.test(rut)){
+    showMessage("RUT del tutor o acompañante inválido. Ejemplo: 12345678-9.");return;
+  }
+  indication.returnTutor=tutor;
+  indication.returnNotes=notes;
   indication.finState="DEVUELTO";
   indication.returnEligibleNew=!!eligible;
   indication.returnAuthorization=auth||"";
@@ -4770,6 +5134,8 @@ function saveReturn(eligible){
     returnedPatientId:indication.patientId,
     returnedIndicationId:indication.id,
     returnedDate:today(),
+    returnedBy:{...tutor},
+    returnNotes:notes,
     availableForDelivery:false
   });
 
@@ -5231,28 +5597,28 @@ function openMassPurchase(){
     return;
   }
   const types=Object.keys(PRODUCT_CODES);
-  let rows='<div style="display:grid;grid-template-columns:2fr 2fr 2fr 1fr;gap:10px;align-items:end">';
-  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Artículo</div>';
-  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Subtipo</div>';
-  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Modelo</div>';
-  rows+='<div style="font-weight:bold;font-size:11px;padding-bottom:5px">Cant.</div>';
+  let rows='<div class="mass-purchase-grid">';
+  rows+='<div class="mp-head">Artículo</div>';
+  rows+='<div class="mp-head">Subtipo</div>';
+  rows+='<div class="mp-head">Modelo</div>';
+  rows+='<div class="mp-head">Cant.</div>';
   
   types.forEach((type,index)=>{
     const subtypes=PRODUCT_SUBTYPES[type]||[];
     const subtypeOptions=subtypes.map((st,i)=>'<option value="'+escapeAttribute(st)+'">'+escapeAttribute(st)+'</option>').join("");
-    rows+='<div><input value="'+escapeAttribute(type)+'" readonly style="font-size:11px"></div>';
-    rows+='<div><select id="purchaseSubtype'+index+'" onchange="updateModelOptions('+index+')" style="font-size:11px;width:100%"><option value="">—</option>'+subtypeOptions+'</select></div>';
-    rows+='<div><select id="purchaseModel'+index+'" style="font-size:11px;width:100%"><option value="">—</option></select></div>';
-    rows+='<div><input type="number" min="0" max="999" step="1" value="0" id="purchaseQty'+index+'" style="font-size:11px;width:100%"></div>';
+    rows+='<div class="mp-row"><input value="'+escapeAttribute(type)+'" readonly></div>';
+    rows+='<div class="mp-row"><select id="purchaseSubtype'+index+'" onchange="updateModelOptions('+index+')"><option value="">—</option>'+subtypeOptions+'</select></div>';
+    rows+='<div class="mp-row"><select id="purchaseModel'+index+'"><option value="">—</option></select></div>';
+    rows+='<div class="mp-row"><input type="number" min="0" max="999" step="1" value="0" id="purchaseQty'+index+'"></div>';
   });
   rows+='</div>';
   
   openMain(
     "Solicitud de compra masiva",
-    '<div class="message info">Ingrese la cantidad a solicitar de cada artículo. Puede solicitar varios tipos y cantidades en una sola gestión.</div>'+rows,
+    '<div class="message info" style="margin-bottom:8px">Ingrese la cantidad a solicitar de cada artículo. Puede solicitar varios tipos y cantidades en una sola gestión.</div>'+rows,
     '<button class="btn gray" onclick="closeMain()">Cerrar</button> '+
     '<button class="btn blue" onclick="saveMassPurchase()">Generar solicitud</button>',
-    "large"
+    "mass-purchase"
   );
 }
 
@@ -5646,8 +6012,9 @@ document.getElementById("searchInput").value=
   getCurrentPatient().name;
 
 function resetDB(e){
-  e.stopPropagation();
+  if(e){e.preventDefault();e.stopPropagation();}
   if(!confirm("Limpiar base de datos y recargar ejemplos?")){return;}
+  localStorage.removeItem(STORAGE_KEY);
   localStorage.removeItem("teleton-ayudas-tecnicas-final-v3");
   location.reload();
 }
