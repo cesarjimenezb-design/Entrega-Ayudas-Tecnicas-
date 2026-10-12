@@ -1004,12 +1004,10 @@ pre{
         traspaso y compra.
       </div>
       <div class="message info" style="margin-top:7px">
-        <b>FIN700 es un sistema externo (ERP), no un módulo de este sistema.</b>
-        Cuando no existe stock local para una indicación, ésta queda en estado
-        <b>Lista de Espera</b> y este sistema <b>envía una solicitud de artículos</b>
-        (traspaso o compra) a FIN700 mediante <b>webservice</b>. FIN700 responde
-        por sistema despachando los artículos solicitados y esa respuesta abastece
-        el stock local, liberando las indicaciones en lista de espera.
+        <b>FIN700 es el sistema maestro de inventario y ERP externo.</b>
+        La Bodega Central y la Bodega Kine/TO deben mantenerse en FIN700; esta maqueta representa sus saldos y simula las respuestas del webservice.
+        Cuando no existe stock en Bodega Kine/TO, la indicación queda en <b>Lista de Espera</b> y se solicita traspaso desde Bodega Central o compra.
+        La recepción actualiza el saldo representado y libera las indicaciones pendientes.
       </div>
       <div style="text-align:right;margin-top:8px">
         <button id="btnMassPurchase" class="btn blue" onclick="openMassPurchase()">Solicitud de compra masiva</button>
@@ -1021,7 +1019,7 @@ pre{
         <tr>
           <th>Producto</th>
           <th>Código</th>
-          <th>Stock local</th>
+          <th>Stock Bodega Kine/TO</th>
           <th>Stock central</th>
           <th>Acciones</th>
         </tr>
@@ -1063,6 +1061,12 @@ pre{
       </thead>
       <tbody id="waitBody"></tbody>
     </table>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">Trazabilidad de artículos entregados a pacientes</div>
+    <div class="panel-body small">Cada entrega confirmada registra artículo/código, paciente, indicación, fecha y bodega de salida. FIN700 debe mantener el stock maestro de Bodega Central y Bodega Kine/TO; esta maqueta simula la trazabilidad local.</div>
+    <div class="table-wrap"><table><thead><tr><th>Indicación</th><th>Paciente</th><th>Artículo</th><th>Código / serie</th><th>Cantidad</th><th>Fecha</th><th>Bodega salida</th><th>Movimiento</th></tr></thead><tbody id="inventoryMovementsBody"></tbody></table></div>
   </div>
 
   <div class="panel">
@@ -1656,14 +1660,24 @@ function seedDatabase(){
       "Silla de ruedas":2,
       "Coche paseo":0,
       "Carro andador":1,
-      "Bastón":0
+      "Bastón":0,
+      "Elem. de posicionamiento, transferencia":0,
+      "Elem. apoyo para marcha":0,
+      "Elem. antiescaras":0,
+      "Elem. para la vida diaria y accesibilidad":0,
+      "Elem. apoyo a la integración laboral y educativa":0
     },
 
     stockCentral:{
       "Silla de ruedas":5,
       "Coche paseo":3,
       "Carro andador":0,
-      "Bastón":0
+      "Bastón":0,
+      "Elem. de posicionamiento, transferencia":0,
+      "Elem. apoyo para marcha":0,
+      "Elem. antiescaras":0,
+      "Elem. para la vida diaria y accesibilidad":0,
+      "Elem. apoyo a la integración laboral y educativa":0
     },
 
     purchaseRequests:[],
@@ -2503,12 +2517,7 @@ function openIndication(){
         '</div>'+
       '</div>'+
       '<div id="usedChairOption" style="display:none;margin-top:10px"></div><div id="indSubtypeBox" class="grid g4" style="margin-top:8px"></div>'+
-    '</fieldset>'+
-
-    '<fieldset>'+
-      '<legend>Especificaciones Técnicas</legend>'+
-      '<div class="grid g4" id="indSpecs"></div>'+
-      '<div id="indTarget" class="msgInfo"></div><div id="indSpecialChair"></div>'+
+      '<div id="indTarget" class="msgInfo"></div>'+
     '</fieldset>'+
 
     '<fieldset>'+
@@ -2663,14 +2672,15 @@ function radioHtml(name,value,label,checked){
   '</label>';
 }
 
-function renderIndicationSpecs(){const type=document.getElementById("indType").value;const entries=SPECIFICATIONS[type]||[];const subtype=entries.find(x=>x[0]==="Subtipo");document.getElementById("indSubtypeBox").innerHTML=subtype?'<div><label class="required">Subtipo</label><select id="indSubtype" class="technical-spec" onchange="renderSpecialChair()">'+subtype[1].map(x=>'<option>'+x+'</option>').join('')+'</select></div>':'';document.getElementById("indSpecs").innerHTML=entries.filter(x=>x[0]!=="Subtipo").map(x=>'<div><label class="required">'+x[0]+'</label><select class="technical-spec">'+x[1].map(v=>'<option>'+v+'</option>').join('')+'</select></div>').join('');document.getElementById("indSpecsFrame").style.display=type?"":"none";renderSpecialChair();}
+function renderIndicationSpecs(){const type=document.getElementById("indType").value;const entries=SPECIFICATIONS[type]||[];const typeEntries=entries.filter(x=>x[0]==="Subtipo"||x[0]==="Tipo");document.getElementById("indSubtypeBox").innerHTML=typeEntries.map(x=>'<div><label class="required">'+x[0]+'</label><select '+(x[0]==="Subtipo"?'id="indSubtype" ':'')+'class="technical-spec">'+x[1].map(v=>'<option>'+v+'</option>').join('')+'</select></div>').join('');}
 function specialChoice(g,v,m){return '<div class="special-choices">'+v.map(x=>'<label><input type="'+(m?'checkbox':'radio')+'" name="sc_'+g+'" value="'+escapeAttribute(x)+'"> '+x+'</label>').join('')+'</div>'}
 function specialMeasures(v){return '<div class="special-measures">'+v.map(x=>'<label>'+x+' <input type="number" data-special-measure="'+escapeAttribute(x)+'"></label>').join('')+'</div>'}
 function specialRow(t,c){return '<div class="special-row"><strong>'+t+'</strong><div>'+c+'</div></div>'}
-function renderSpecialChair(){const c=document.getElementById('indSpecialChair');if(!c)return;const sub=document.getElementById('indSubtype');if(document.getElementById('indType').value!=="Silla de ruedas"||!sub||sub.value!=="ESPECIAL"){c.innerHTML='';return}c.innerHTML='<div class="special-chair"><h4>Tipo silla de ruedas especial</h4>'+specialRow('Configuración',specialChoice('config',['Estándar','Neurológica','Ultraliviana','Camilla','Otra'])+'<input type="text" placeholder="Otra configuración">')+'<h4>Especificaciones técnicas</h4>'+specialRow('Respaldo',specialChoice('respaldo',['Fijo','Reclinable'])+specialChoice('tela',['Tela estándar','Tela reforzada','Tela ajustable'])+specialMeasures(['Asiento-bajo escápula','Asiento-hombros','Hombro-cabeza']))+specialRow('Asiento',specialChoice('asiento',['Tela estándar','Tela reforzada'])+specialChoice('ancho',['30','33','36','39','42','45','Otro'])+specialChoice('profundidad',['30','33','36','40','45']))+specialRow('Apoya brazos',specialChoice('brazos',['Abatible largo','Abatible corto','Guardafango','Desmontable','Elevable','Cualquiera'])+specialMeasures(['Altura']))+specialRow('Soporte piernas',specialChoice('piernas',['Fijo','Desmontable','Elevable'])+specialMeasures(['Largo']))+specialRow('Apoya pies',specialChoice('pies',['Pinza','Telescópico','Pata de loro','Lona en banda','De una hoja']))+specialRow('Ruedas delanteras',specialChoice('delanteras',['Inflable aro 7','PU aro 7','PU aro 5']))+specialRow('Ruedas traseras',specialChoice('traseras',['Inflable aro 16','Inflable aro 24','PU aro 16','PU aro 24','Mountain Bike aro 24'])+specialChoice('extras',['Desmontable','Ruedas de tránsito'],true))+'<h4>Accesorios</h4>'+specialRow('Sujeción',specialChoice('sujecion',['Cinturón torácico','Lateral de tres puntas','Pechera camiseta'],true))+specialRow('Pelvis',specialChoice('pelvis',['Cinturón pélvico','Calzón sujeción','Calzón con arnés'],true))+specialRow('Cojines',specialChoice('cojines',['Abductor estándar','Cabezal en C','Cabezal recto','Respaldo','Asiento','Laterales','Abductor especial'],true))+specialRow('Otros',specialChoice('otros',['Bandeja o mesa','Tapa rayos','Bolsillo respaldo','Un antivuelco','Par de antivuelcos','Porta oxígeno','Bandeja Bi-pap'],true))+'</div>'}
+function specialChairHtml(){return '<div class="special-chair"><h4>Tipo silla de ruedas especial</h4>'+specialRow('Configuración',specialChoice('config',['Estándar','Neurológica','Ultraliviana','Camilla','Otra'])+'<input type="text" placeholder="Otra configuración">')+'<h4>Especificaciones técnicas</h4>'+specialRow('Respaldo',specialChoice('respaldo',['Fijo','Reclinable'])+specialChoice('tela',['Tela estándar','Tela reforzada','Tela ajustable'])+specialMeasures(['Asiento-bajo escápula','Asiento-hombros','Hombro-cabeza']))+specialRow('Asiento',specialChoice('asiento',['Tela estándar','Tela reforzada'])+specialChoice('ancho',['30','33','36','39','42','45','Otro'])+specialChoice('profundidad',['30','33','36','40','45']))+specialRow('Apoya brazos',specialChoice('brazos',['Abatible largo','Abatible corto','Guardafango','Desmontable','Elevable','Cualquiera'])+specialMeasures(['Altura']))+specialRow('Soporte piernas',specialChoice('piernas',['Fijo','Desmontable','Elevable'])+specialMeasures(['Largo']))+specialRow('Apoya pies',specialChoice('pies',['Pinza','Telescópico','Pata de loro','Lona en banda','De una hoja']))+specialRow('Ruedas delanteras',specialChoice('delanteras',['Inflable aro 7','PU aro 7','PU aro 5']))+specialRow('Ruedas traseras',specialChoice('traseras',['Inflable aro 16','Inflable aro 24','PU aro 16','PU aro 24','Mountain Bike aro 24'])+specialChoice('extras',['Desmontable','Ruedas de tránsito'],true))+'<h4>Accesorios</h4>'+specialRow('Sujeción',specialChoice('sujecion',['Cinturón torácico','Lateral de tres puntas','Pechera camiseta'],true))+specialRow('Pelvis',specialChoice('pelvis',['Cinturón pélvico','Calzón sujeción','Calzón con arnés'],true))+specialRow('Cojines',specialChoice('cojines',['Abductor estándar','Cabezal en C','Cabezal recto','Respaldo','Asiento','Laterales','Abductor especial'],true))+specialRow('Otros',specialChoice('otros',['Bandeja o mesa','Tapa rayos','Bolsillo respaldo','Un antivuelco','Par de antivuelcos','Porta oxígeno','Bandeja Bi-pap'],true))+'</div>'}
+function renderSpecialChair(){const c=document.getElementById('indSpecialChair');if(!c)return;const sub=document.getElementById('indSubtype');if(document.getElementById('indType').value!=="Silla de ruedas"||!sub||sub.value!=="ESPECIAL"){c.innerHTML='';return}c.innerHTML=specialChairHtml()}
 function readSpecialChair(){const c=document.getElementById('indSpecialChair');if(!c||!c.querySelector('.special-chair'))return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));const measures={};c.querySelectorAll('[data-special-measure]').forEach(i=>{if(i.value)measures[i.dataset.specialMeasure]=i.value});return {selections,measures}}
 function restoreSpecialChair(d){if(!d)return;const target=document.getElementById('evaluationSpecialChair');if(!target)return;const old=document.getElementById('indSpecialChair');if(old){target.innerHTML=old.innerHTML;Object.entries(d.selections||{}).forEach(([k,v])=>target.querySelectorAll('input[name="sc_'+k+'"]').forEach(i=>i.checked=v.includes(i.value)));}}
-function readEvaluatedSpecialChair(){const c=document.getElementById('evaluationSpecialChair');if(!c)return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));return {selections,measures:{}}}
+function readEvaluatedSpecialChair(){const c=document.getElementById('evaluationSpecialChair');if(!c)return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));const measures={};c.querySelectorAll('[data-special-measure]').forEach(i=>{if(i.value)measures[i.dataset.specialMeasure]=i.value});return {selections,measures}}
 
 function renderIndicationTarget(){
   const type=document.getElementById("indType").value;
@@ -3216,7 +3226,62 @@ function startAgendaAtToolbarFlow(){
   };
 
   document.getElementById("searchInput").value=patient.name;
-  openIndication();
+
+  /* Este botón inicia una evaluación AT desde la actividad seleccionada.
+     Las actividades clínicas sin indicación siguen pudiendo originar la
+     necesidad de AT; se crea una indicación base sólo para esta actividad. */
+  let indication=getIndication(appointment.indicationId);
+
+  if(indication&&(indication.state==="Anulada"||indication.finState==="ANULADO")){
+    showMessage("No se puede iniciar una evaluación para una indicación anulada.");
+    return;
+  }
+
+  if(!indication){
+    const id=DB.nextIndication++;
+    indication={
+      id:id,
+      patientId:patient.id,
+      origin:patient.institute,
+      destination:patient.institute,
+      doctor:(USERS[currentProfile]&&USERS[currentProfile].name)||"",
+      date:today(),
+      type:"Silla de ruedas",
+      clinicalOrigin:appointment.activity,
+      definitive:"NO",
+      usage:"Temporal",
+      dependence:"Leve",
+      priority:"Prioridad Normal",
+      areas:[], spaces:[], impact:"", benefitNotes:"", specs:[],
+      specialChair:null, observations:"",
+      target:getTarget("Silla de ruedas"),
+      indicationByProfile:currentProfile,
+      evaluator:"", evaluationDate:"", evaluation:null,
+      state:"Indicada",
+      requestId:"FIN"+(700+DB.indications.length),
+      contractState:"", finState:"SOLICITUD DE CONSUMO", deliveryDate:"",
+      deliverySource:"NUEVA", usedChairRequested:false,
+      stockReady:(DB.stockLocal["Silla de ruedas"]||0)>0,
+      contacts:0, condition:"Nuevo", contract:null,
+      sourceAppointmentId:appointment.id,
+      agendaEvaluation:true
+    };
+    DB.indications.unshift(indication);
+    appointment.indicationId=id;
+    persist();
+  }
+
+  currentPatientId=indication.patientId;
+  selectedIndicationId=indication.id;
+  selectedAdminId=indication.id;
+  renderContext();
+
+  const requiredProfile=profileForTarget(indication.target);
+  currentProfile=requiredProfile;
+  document.getElementById("perfil").value=requiredProfile;
+  updateProfile();
+
+  openEvaluation(appointment.id);
 }
 
 document.getElementById("agendaAtActivityPatient")
@@ -3339,7 +3404,9 @@ function openEvaluation(appointmentId){
     '</div>'+
 
     '<div class="message warning">'+
-      '<b>Nota:</b> los datos de la indicación médica están precargados y no son editables.'+
+      (indication.agendaEvaluation
+        ?'<b>Nota:</b> seleccione la clase de Ayuda Técnica y sus especificaciones para esta evaluación originada desde agenda.'
+        :'<b>Nota:</b> los datos de la indicación médica están precargados y no son editables.')+
     '</div>'+
 
     '<fieldset>'+
@@ -3355,8 +3422,16 @@ function openEvaluation(appointmentId){
         '</div>'+
         formRead("Especialidad indicadora","Fisiatría")+
         formRead("Profesional indicador",indication.doctor)+
-        formRead("Ayuda Técnica indicada",indication.type)+
-        formRead("Evaluador",evaluator)+
+        (indication.agendaEvaluation
+          ?'<div><label class="required">Clase de Ayuda Técnica</label>'+ 
+             '<select id="evalAgendaType" onchange="changeAgendaEvaluationType()">'+
+               Object.keys(PRODUCT_CODES).map(function(type){return '<option value="'+escapeAttribute(type)+'"'+(type===indication.type?' selected':'')+'>'+escapeAttribute(type)+'</option>';}).join('')+
+             '</select></div>'
+          :formRead("Ayuda Técnica indicada",indication.type))+
+        '<div>'+
+          '<label>Evaluador</label>'+
+          '<input id="evalEvaluator" value="'+escapeAttribute(indication.evaluator||"")+'" placeholder="Nombre del profesional evaluador">'+
+        '</div>'+
         '<div>'+
           '<label class="required">Fecha evaluación</label>'+
           '<input type="date" id="evalDate" value="'+today()+'">'+
@@ -3399,7 +3474,7 @@ function openEvaluation(appointmentId){
       '<div class="grid g4" id="evaluationSpecs">'+
         specificationOptions(indication.type,indication.specs)+
       '</div>'+
-      (indication.specialChair?'<div id="evaluationSpecialChair" class="special-chair"></div>':'')+
+      '<div id="evaluationSpecialChairBox"></div>'+
       '<div class="grid g2" style="margin-top:10px">'+
         '<div>'+
           '<label class="required">¿La AT indicada es adecuada?</label>'+
@@ -3433,6 +3508,42 @@ function openEvaluation(appointmentId){
     '<button class="btn red" onclick="saveEvaluation('+(appointmentId||0)+')">GUARDAR</button>',
     "large"
   );
+
+  initEvaluationSpecialChair(indication);
+}
+
+function changeAgendaEvaluationType(){
+  const indication=getSelectedIndication();
+  const type=document.getElementById("evalAgendaType")?.value;
+  if(!indication||!type)return;
+  indication.type=type;
+  indication.target=getTarget(type);
+  indication.specs=[];
+  document.getElementById("evaluationSpecs").innerHTML=specificationOptions(type,[]);
+  document.getElementById("evaluationSpecialChairBox").innerHTML="";
+  initEvaluationSpecialChair(indication);
+}
+
+function initEvaluationSpecialChair(indication){
+  if(indication.type!=="Silla de ruedas")return;
+  const sub=document.querySelector("#evaluationSpecs .technical-spec");
+  const box=document.getElementById("evaluationSpecialChairBox");
+  if(!sub||!box)return;
+
+  const refresh=function(){
+    if(sub.value!=="ESPECIAL"){box.innerHTML="";return;}
+    if(box.querySelector(".special-chair"))return;
+    box.innerHTML='<div id="evaluationSpecialChair">'+specialChairHtml()+'</div>';
+    const saved=indication.specialChair;
+    if(!saved)return;
+    Object.entries(saved.selections||{}).forEach(([k,v])=>
+      box.querySelectorAll('input[name="sc_'+k+'"]').forEach(i=>i.checked=v.includes(i.value)));
+    Object.entries(saved.measures||{}).forEach(([k,v])=>
+      box.querySelectorAll('[data-special-measure]').forEach(i=>{if(i.dataset.specialMeasure===k)i.value=v}));
+  };
+
+  sub.addEventListener("change",refresh);
+  refresh();
 }
 
 function toggleReevaluation(){
@@ -3485,10 +3596,16 @@ function saveEvaluation(appointmentId){
     return;
   }
 
+  const agendaSelectedType=document.getElementById("evalAgendaType")?.value;
+  if(agendaSelectedType){
+    indication.type=agendaSelectedType;
+    indication.target=getTarget(agendaSelectedType);
+  }
+
   indication.specs=
     Array.from(document.querySelectorAll(".technical-spec"))
       .map(item=>item.value);
-  if(indication.specialChair)indication.specialChair=readEvaluatedSpecialChair();
+  indication.specialChair=document.getElementById("evaluationSpecialChair")?readEvaluatedSpecialChair():null;
 
   indication.usage=
     document.getElementById("evalUsage").value;
@@ -3506,7 +3623,8 @@ function saveEvaluation(appointmentId){
     document.getElementById("evalDefinitive").value;
 
   indication.evaluator=
-    USERS[currentProfile].name;
+    document.getElementById("evalEvaluator").value.trim()||
+    (USERS[currentProfile]&&USERS[currentProfile].name)||indication.evaluator||"Evaluador asignado";
 
   indication.evaluationDate=date;
 
@@ -3690,22 +3808,27 @@ function openPrestations(kind){
   const patient=getPatient(indication.patientId);
 
   let prestations;
-
-  if(kind==="delivery"){
-    prestations=[
-      "Entrega "+indication.type,
-      "Intervención en ayudas técnicas y tecnología asistida",
-      "Atención de padres"
-    ];
+  const appointment=DB.appointments.find(item=>item.id===Number(evolutionContext.appointmentId));
+  const activityName=(appointment&&appointment.activity)||"";
+  const isCombined=/evaluación y entrega/i.test(activityName);
+  const isDelivery=kind==="delivery";
+  if(isDelivery){
+    prestations=["Entrega "+indication.type,"Intervención en ayudas técnicas y tecnología asistida","Atención de padres"];
   }else{
-    prestations=[
-      "Evaluación "+indication.type,
-      "Intervención en ayudas técnicas y tecnología asistida",
-      "Familia Contigo - Entrega Material",
-      "Informe",
-      "Seguimiento caso en Equipo"
-    ];
+    prestations=["Evaluación "+indication.type,"Intervención en ayudas técnicas y tecnología asistida","Familia Contigo - Entrega Material","Informe","Seguimiento caso en Equipo"];
   }
+  // La prestación principal queda marcada según la actividad clínica de origen.
+  const defaultPrestations=isDelivery
+    ?["Entrega "+indication.type]
+    :(isCombined
+      ?["Evaluación "+indication.type,"Intervención en ayudas técnicas y tecnología asistida","Familia Contigo - Entrega Material"]
+      :["Evaluación "+indication.type,"Intervención en ayudas técnicas y tecnología asistida"]);
+
+  // Prestaciones adicionales que se pueden agregar (según tipo de actividad), excluyendo las ya listadas.
+  const extraCatalog=isDelivery
+    ?["Informe","Seguimiento caso en Equipo","Familia Contigo - Entrega Material"]
+    :["Entrega "+indication.type,"Atención de padres"];
+  const extraPrestations=extraCatalog.filter(name=>!prestations.includes(name));
 
   openMain(
     "Registrar Prestaciones Individual",
@@ -3737,7 +3860,7 @@ function openPrestations(kind){
             '<tr>'+
               '<td>'+
                 '<input type="checkbox" class="prest-check" value="'+name+'" '+
-                (index===0?"checked":"")+
+                (defaultPrestations.includes(name)?"checked":"")+
                 ' onchange="previewStock(this)">'+
               '</td>'+
               '<td>'+name+'</td>'+
@@ -3747,6 +3870,13 @@ function openPrestations(kind){
           ).join("")+
         '</tbody>'+
       '</table>'+
+      '<div class="prest-add-row" style="display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap">'+
+        '<select id="newPrestationName" style="flex:1;min-width:240px"'+(extraPrestations.length?'':' disabled')+'>'+
+          '<option value="">'+(extraPrestations.length?'Seleccione una prestación adicional…':'No hay más prestaciones disponibles')+'</option>'+
+          extraPrestations.map(name=>'<option value="'+escapeAttribute(name)+'">'+escapeAttribute(name)+'</option>').join("")+
+        '</select>'+
+        '<button type="button" class="btn blue" onclick="addCustomPrestation()"'+(extraPrestations.length?'':' disabled')+'>+ Agregar prestación</button>'+
+      '</div>'+
     '</fieldset>'+
 
     '<div id="prestMessage"></div>',
@@ -3756,6 +3886,28 @@ function openPrestations(kind){
 
     "large"
   );
+}
+
+function addCustomPrestation(){
+  const input=document.getElementById("newPrestationName");
+  const name=(input?.value||"").trim();
+  if(!name){showMessage("Seleccione la prestación que desea agregar.");return;}
+  const existing=Array.from(document.querySelectorAll(".prest-check")).some(el=>el.value.toLowerCase()===name.toLowerCase());
+  if(existing){showMessage("La prestación ya está incluida en la lista.");return;}
+  const tbody=document.querySelector("#mainBody fieldset:last-of-type tbody");
+  if(!tbody){showMessage("No se pudo ubicar la lista de prestaciones.");return;}
+  const tr=document.createElement("tr");
+  tr.innerHTML='<td><input type="checkbox" class="prest-check" checked value="'+escapeAttribute(name)+'"></td><td>'+escapeAttribute(name)+'</td><td><input type="number" min="1" value="1" style="width:55px"></td><td><input></td>';
+  tbody.appendChild(tr);
+  const chosen=input.selectedOptions&&input.selectedOptions[0];
+  if(chosen&&chosen.value)chosen.remove();
+  input.value="";
+  if(input.options.length<=1){
+    input.options[0].textContent="No hay más prestaciones disponibles";
+    input.disabled=true;
+    const addBtn=input.parentNode.querySelector("button");
+    if(addBtn)addBtn.disabled=true;
+  }
 }
 
 function previewStock(checkbox){
@@ -3838,6 +3990,25 @@ function savePrestations(){
   const indication=getSelectedIndication();
 
   if(prestationContext.kind==="delivery"){
+    // El descuento se realiza al confirmar la entrega efectiva, para cualquier tipo de artículo.
+    if(!indication.inventoryDelivered){
+      const itemType=indication.type;
+      const stockNow=Number(DB.stockLocal[itemType]||0);
+      if(!indication.usedChairCode && stockNow<=0){
+        showMessage("No es posible confirmar la entrega: no existe stock local disponible para "+itemType+".");
+        return;
+      }
+      if(!indication.usedChairCode) DB.stockLocal[itemType]=Math.max(stockNow-1,0);
+      indication.inventoryDelivered=true;
+      indication.inventoryMovement={
+        productCode:indication.usedChairCode||PRODUCT_CODES[itemType]||itemType,
+        item:itemType, quantity:1, date:today(), patientId:indication.patientId,
+        indicationId:indication.id, warehouse:indication.usedChairCode?"BODEGA KINE/TO · ARTÍCULO REUTILIZADO":"BODEGA KINE/TO",
+        movement:"SALIDA POR ENTREGA A PACIENTE"
+      };
+      if(!DB.inventoryMovements) DB.inventoryMovements=[];
+      DB.inventoryMovements.push(indication.inventoryMovement);
+    }
     const appointment=DB.appointments.find(
       item=>item.id===Number(evolutionContext.appointmentId)
     );
@@ -4072,6 +4243,17 @@ function openCancel(origin){
     showMessage("Seleccione una indicación.");
     return;
   }
+  const cancellationBlocked=indication.inventoryDelivered || indication.deliveryDate ||
+    ["Finalizada","Chequeo conforme"].includes(indication.state) ||
+    ["EMITIDO","ENTREGADO"].includes(String(indication.contractState||"").toUpperCase());
+  if(cancellationBlocked){
+    showMessage("La indicación ya avanzó a entrega o contrato. No corresponde anularla directamente; debe gestionarse una devolución/reversión con trazabilidad y conservar el historial.");
+    return;
+  }
+  if(indication.state==="Anulada"){
+    showMessage("La indicación ya se encuentra anulada.");
+    return;
+  }
 
   openMain(
     "Confirmar anulación",
@@ -4176,7 +4358,7 @@ function openHistory(){
             '<td>'+indication.requestId+'</td>'+
             '<td>'+formatDate(indication.date)+'</td>'+
             '<td>'+indication.doctor+'</td>'+
-            '<td>'+(indication.evaluator||"—")+'</td>'+
+            '<td>'+(indication.evaluator||"Pendiente de asignación")+'</td>'+
             '<td>'+formatDate(indication.evaluationDate)+'</td>'+
             '<td>'+indication.state+'</td>'+
             '<td>'+formatDate(indication.deliveryDate)+'</td>'+
@@ -4734,7 +4916,7 @@ function openPrevalidation(){
       '<div class="panelTitle">Datos de Indicación</div>'+
       '<div class="panelBody grid g3">'+
         formRead("Correlativo",indication.id)+
-        formRead("Profesional evaluador",indication.evaluator)+
+        formRead("Profesional evaluador",indication.evaluator||"Pendiente de asignación")+
         formRead("Artículo solicitado",indication.type.toUpperCase())+
       '</div>'+
     '</div>'+
@@ -5011,6 +5193,12 @@ function monthsSince(dateStr){
     (now.getMonth()-from.getMonth());
 }
 
+function deliveredProductCode(indication){
+  const full=indication.usedChairCode||indication.articleCode||indication.barcode||"";
+  const movement=(indication.inventoryMovement&&indication.inventoryMovement.productCode)||"";
+  return String(full||movement||PRODUCT_CODES[indication.type]||"").split("-")[0];
+}
+
 function openReturn(){
   const indication=getIndication(selectedAdminId);
   if(!indication)return;
@@ -5030,6 +5218,7 @@ function openReturn(){
   const eligible=months!==null&&months>=24;
   const antiquity=months===null?"Sin fecha de entrega registrada":Math.floor(months/12)+" año(s) y "+(months%12)+" mes(es) de uso";
   const knownCode=indication.usedChairCode||indication.articleCode||indication.barcode||"";
+  const productCode=deliveredProductCode(indication);
   const body=
     '<div class="panel"><div class="panel-title">Datos paciente</div><div class="panel-body grid g3">'+
       formRead("Nombre",patient.id+" - "+patient.name)+
@@ -5054,11 +5243,11 @@ function openReturn(){
     '<div class="panel"><div class="panel-title">Datos devolución</div><div class="panel-body">'+
       '<div class="grid g3">'+
         formRead("Fecha devolución",formatDate(today()))+
-        formRead("Artículo devuelto",indication.type+" · "+(indication.specs||[]).join(", "))+
+        formRead("Artículo devuelto",[indication.type,(indication.specs||[]).join(", "),productCode?"Cód. "+productCode:""].filter(Boolean).join(" · "))+
         formRead("Estado del artículo","EN DEVOLUCIÓN")+
       '</div>'+
       '<label class="required" style="margin-top:8px">Código de barra artículo / N° de serie</label>'+
-      '<input id="returnSerial" value="'+escapeAttribute(knownCode)+'" placeholder="Ingrese el código del artículo devuelto">'+
+      '<input id="returnSerial" value="'+escapeAttribute(knownCode||(productCode?productCode+"-":""))+'" placeholder="Ingrese el código del artículo devuelto">'+
       '<label style="margin-top:8px">Cantidad</label><input type="number" id="returnQuantity" value="1" min="1" readonly>'+ 
       '<div class="message info" style="margin-top:8px"><b>Antigüedad:</b> '+antiquity+'<br>'+
         (eligible?'Cumple más de 2 años: se puede entregar una nueva ayuda técnica.':'Menos de 2 años: requiere autorización especial para entregar una nueva ayuda técnica.')+
@@ -5095,6 +5284,13 @@ function saveReturn(eligible){
   if(!indication||!requiresComodato(indication.type)||
       indication.contractState!=="EMITIDO"||indication.finState==="DEVUELTO"){
     showMessage("La ayuda técnica no está habilitada para devolución.");return;
+  }
+  const expectedProduct=deliveredProductCode(indication);
+  if(expectedProduct&&!serial.toUpperCase().startsWith(expectedProduct.slice(0,4).toUpperCase())){
+    showMessage("El código ingresado no corresponde al producto entregado ("+indication.type+", código "+expectedProduct+"). Verifique el artículo que se está devolviendo.");return;
+  }
+  if(expectedProduct&&serial.toUpperCase().replace(/-$/,"")===expectedProduct.toUpperCase()){
+    showMessage("Complete el N° de serie del artículo devuelto (ej: "+expectedProduct+"-12345).");return;
   }
   if((DB.articles||[]).some(article=>article.code===serial)){
     showMessage("El código de barra ya existe en el inventario. Verifique el artículo antes de registrar la devolución.");return;
@@ -5702,8 +5898,8 @@ function renderStock(){
       '<tr>'+
         '<td>'+type+'</td>'+
         '<td>'+PRODUCT_CODES[type]+'</td>'+
-        '<td><b>'+DB.stockLocal[type]+'</b></td>'+
-        '<td><b>'+DB.stockCentral[type]+'</b></td>'+
+        '<td><b>'+(DB.stockLocal[type]||0)+'</b></td>'+
+        '<td><b>'+(DB.stockCentral[type]||0)+'</b></td>'+
         '<td>'+
           '<button class="mini blue" onclick="receiveStock(\''+type+'\')">'+
             'Recepcionar +1 local'+
@@ -5739,6 +5935,13 @@ function renderStock(){
   renderWaitList();
   renderWsLog();
   renderMassPurchaseRequests();
+  const movementBody=document.getElementById("inventoryMovementsBody");
+  if(movementBody){
+    const movements=DB.inventoryMovements||[];
+    movementBody.innerHTML=movements.length?movements.slice().reverse().map(m=>
+      '<tr><td>'+m.indicationId+'</td><td>'+m.patientId+'</td><td>'+m.item+'</td><td>'+m.productCode+'</td><td>'+m.quantity+'</td><td>'+formatDate(m.date)+'</td><td>'+m.warehouse+'</td><td>'+m.movement+'</td></tr>'
+    ).join(""):'<tr><td colspan="8" class="empty">Sin movimientos registrados.</td></tr>';
+  }
 }
 
 /* Simulación del webservice de respuesta de FIN700:
