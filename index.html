@@ -940,6 +940,19 @@ pre{
     </div>
 
     <div class="panel-body">
+      <div class="message info">
+        <b>Catálogo de artículos FIN700:</b> los productos nuevos recibidos desde FIN700 quedan pendientes hasta que un administrador los habilite. Sólo los habilitados estarán disponibles para indicación y evaluación profesional.
+      </div>
+      <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;margin:8px 0">
+        <button class="btn blue" onclick="simulateFin700CatalogSync()"><i class="fa-solid fa-rotate"></i> Sincronizar productos FIN700</button>
+        <button class="btn green" onclick="openFin700Product()"><i class="fa-solid fa-plus"></i> Registrar producto FIN700</button>
+      </div>
+      <div class="table-wrap" style="margin-bottom:12px">
+        <table>
+          <thead><tr><th>Código FIN700</th><th>Producto / descripción</th><th>Tipo AT</th><th>Características</th><th>Estado catálogo</th><th>Acción</th></tr></thead>
+          <tbody id="fin700CatalogBody"></tbody>
+        </table>
+      </div>
       <div class="grid g3">
         <div>
           <label>ESTADO ARTÍCULO</label>
@@ -1748,6 +1761,11 @@ try{
 
 DB.purchaseRequests=DB.purchaseRequests||[];
 DB.nextPurchaseRequest=DB.nextPurchaseRequest||1;
+DB.fin700Catalog=DB.fin700Catalog||[
+  {code:"FIN-AT-9001",name:"Silla de ruedas ultraliviana aluminio",category:"Silla de ruedas",characteristics:"Marco rígido; rueda PU; talla ajustable",active:false,source:"FIN700"},
+  {code:"FIN-AT-9002",name:"Andador posterior pediátrico regulable",category:"Carro andador",characteristics:"Talla pediátrica; altura regulable",active:false,source:"FIN700"}
+];
+DB.fin700Catalog.forEach(item=>{if(item.active===undefined)item.active=false;});
 
 let currentPatientId=101020;
 let selectedIndicationId=null;
@@ -1818,7 +1836,8 @@ function getSelectedIndication(){
 }
 
 function getTarget(type){
-  return type==="Silla de ruedas"||type==="Coche paseo"
+  type=getBaseProductType(type);
+  return type==="Silla de ruedas"||type==="Coche paseo"||type==="Coche de paseo"
     ?"TERAPIA OCUPACIONAL"
     :"KINESIOLOGÍA";
 }
@@ -2012,6 +2031,7 @@ function radioHtml(name,value,label,checked){
 }
 
 function specificationOptions(type,values){
+  type=getBaseProductType(type);
   const list=SPECIFICATIONS[type]||[];
 
   return list.map((item,index)=>{
@@ -2035,7 +2055,7 @@ function showPage(id){
   if(id==="ayudas")renderIndications();
   if(id==="escritorio")renderAgenda();
   if(id==="admin")renderAdmin();
-  if(id==="mantencion")renderArticles();
+  if(id==="mantencion"){renderArticles();renderFin700Catalog();}
   if(id==="bodega")renderStock();
 
   closeMenu();
@@ -2447,16 +2467,10 @@ function openIndication(){
       '<div class="grid g4" style="margin-top:8px">'+
         '<div>'+
           '<label class="required">Ayuda Técnica</label>'+
-          '<select id="indType" onchange="renderIndicationSpecs();renderIndicationTarget();toggleUsedChairOption()">'+
-            '<option>Elem. de posicionamiento, transferencia</option>'+
-            '<option>Silla de ruedas</option>'+
-            '<option>Coche de paseo</option>'+
-            '<option>Elem. apoyo para marcha</option>'+
-            '<option>Carro andador</option>'+
-            '<option>Elem. antiescaras</option>'+
-            '<option>Elem. para la vida diaria y accesibilidad</option>'+
-            '<option>Elem. apoyo a la integración laboral y educativa</option>'+
+          '<select id="indType" onchange="renderIndicationSpecs();renderIndicationTarget();renderFin700ProductInfo();toggleUsedChairOption()">'+
+            indicationTypeOptions(Object.keys(PRODUCT_CODES)[0])+
           '</select>'+
+          '<div id="indFin700ProductInfo" class="small" style="margin-top:4px"></div>'+
         '</div>'+
         '<div>'+
           '<label class="required">Período de uso</label>'+
@@ -2610,6 +2624,7 @@ function openIndication(){
 
   renderIndicationSpecs();
   renderIndicationTarget();
+  renderFin700ProductInfo();
   toggleUsedChairOption();
 }
 
@@ -2628,7 +2643,7 @@ function toggleUsedChairOption(){
 
   if(!box||!type||!usage)return;
 
-  if(type.value!=="Silla de ruedas" || usage.value!=="Temporal"){
+  if(getBaseProductType(type.value)!=="Silla de ruedas" || usage.value!=="Temporal"){
     box.style.display="none";
     box.innerHTML="";
     return;
@@ -2672,7 +2687,27 @@ function radioHtml(name,value,label,checked){
   '</label>';
 }
 
-function renderIndicationSpecs(){const type=document.getElementById("indType").value;const entries=SPECIFICATIONS[type]||[];const typeEntries=entries.filter(x=>x[0]==="Subtipo"||x[0]==="Tipo");document.getElementById("indSubtypeBox").innerHTML=typeEntries.map(x=>'<div><label class="required">'+x[0]+'</label><select '+(x[0]==="Subtipo"?'id="indSubtype" ':'')+'class="technical-spec">'+x[1].map(v=>'<option>'+v+'</option>').join('')+'</select></div>').join('');}
+function getBaseProductType(type){
+  const item=(DB.fin700Catalog||[]).find(p=>p.active&&p.name===type);
+  return item?item.category:type;
+}
+function getProductCode(type){
+  const item=(DB.fin700Catalog||[]).find(p=>p.active&&p.name===type);
+  return item?item.code:(PRODUCT_CODES[getBaseProductType(type)]||type);
+}
+function availableIndicationTypes(){
+  return Object.keys(PRODUCT_CODES).concat((DB.fin700Catalog||[]).filter(p=>p.active).map(p=>p.name));
+}
+function indicationTypeOptions(selected){
+  return availableIndicationTypes().map(type=>'<option value="'+escapeAttribute(type)+'"'+(type===selected?' selected':'')+'>'+escapeAttribute(type)+'</option>').join('');
+}
+function renderFin700ProductInfo(){
+  const select=document.getElementById("indType"),box=document.getElementById("indFin700ProductInfo");
+  if(!select||!box)return;
+  const item=(DB.fin700Catalog||[]).find(p=>p.active&&p.name===select.value);
+  box.innerHTML=item?'<b>FIN700 '+escapeAttribute(item.code)+'</b> · '+escapeAttribute(item.characteristics||"Sin características adicionales registradas"):'';
+}
+function renderIndicationSpecs(){const type=getBaseProductType(document.getElementById("indType").value);const entries=SPECIFICATIONS[type]||[];const typeEntries=entries.filter(x=>x[0]==="Subtipo"||x[0]==="Tipo");document.getElementById("indSubtypeBox").innerHTML=typeEntries.map(x=>'<div><label class="required">'+x[0]+'</label><select '+(x[0]==="Subtipo"?'id="indSubtype" ':'')+'class="technical-spec">'+x[1].map(v=>'<option>'+v+'</option>').join('')+'</select></div>').join('');}
 function specialChoice(g,v,m){return '<div class="special-choices">'+v.map(x=>'<label><input type="'+(m?'checkbox':'radio')+'" name="sc_'+g+'" value="'+escapeAttribute(x)+'"> '+x+'</label>').join('')+'</div>'}
 function specialMeasures(v){return '<div class="special-measures">'+v.map(x=>'<label>'+x+' <input type="number" data-special-measure="'+escapeAttribute(x)+'"></label>').join('')+'</div>'}
 function specialRow(t,c){return '<div class="special-row"><strong>'+t+'</strong><div>'+c+'</div></div>'}
@@ -2683,10 +2718,10 @@ function restoreSpecialChair(d){if(!d)return;const target=document.getElementByI
 function readEvaluatedSpecialChair(){const c=document.getElementById('evaluationSpecialChair');if(!c)return null;const selections={};c.querySelectorAll('input[name^="sc_"]:checked').forEach(i=>(selections[i.name.slice(3)]??=[]).push(i.value));const measures={};c.querySelectorAll('[data-special-measure]').forEach(i=>{if(i.value)measures[i.dataset.specialMeasure]=i.value});return {selections,measures}}
 
 function renderIndicationTarget(){
-  const type=document.getElementById("indType").value;
-
+  const selectedType=document.getElementById("indType").value;
+  const type=getBaseProductType(selectedType);
   document.getElementById("indTarget").innerHTML=
-    "<b>Derivación automática:</b> "+type+
+    "<b>Derivación automática:</b> "+selectedType+
     " → <b>"+getTarget(type)+"</b>.";
 }
 
@@ -2850,7 +2885,7 @@ function saveIndication(){
     specs:data.specs,
     specialChair:data.specialChair,
     observations:data.observations,
-    target:getTarget(data.type),
+    target:getTarget(getBaseProductType(data.type)),
     indicationByProfile:currentProfile,
     evaluator:"",
     evaluationDate:"",
@@ -3288,7 +3323,7 @@ document.getElementById("agendaAtActivityPatient")
   .addEventListener("click",startAgendaAtToolbarFlow);
 
 function openDirectActivity(){if(!["TO","KI","TI"].includes(currentProfile)){showMessage("Para evaluar o entregar seleccione perfil TO, KI o Administrador TO/KI.");return}const body='<div class="message info">Seleccione la actividad y el paciente. No se creará una agenda previa.</div><label class="required">Actividad</label><select id="directKind" onchange="renderDirectPatients()"><option value="evaluation">Evaluación ayuda técnica</option><option value="delivery">Entrega ayuda técnica</option></select><label class="required" style="margin-top:8px">Paciente e indicación</label><select id="directIndication"></select>';openMain("Actividad y paciente · Sin agenda previa",body,'<button class="btn gray" onclick="closeMain()">Cerrar</button> <button class="btn red" onclick="startDirectActivity()">Iniciar atención</button>',"small");renderDirectPatients()}
-function renderDirectPatients(){const k=document.getElementById('directKind').value;const a=DB.indications.filter(x=>k==='evaluation'?["Indicada","Agendada"].includes(x.state):["Evaluada","Chequeo conforme"].includes(x.state));document.getElementById('directIndication').innerHTML='<option value="">Seleccione paciente e indicación</option>'+a.map(x=>{const p=getPatient(x.patientId);return '<option value="'+x.id+'">'+p.id+' - '+p.name+' · '+x.type+' ('+x.state+')</option>'}).join('')}
+function renderDirectPatients(){const k=document.getElementById('directKind').value;const a=DB.indications.filter(x=>k==='evaluation'?["Indicada","Agendada"].includes(x.state):x.state==="Evaluada" && x.finState!=="ENTREGADO" && !x.inventoryDelivered);document.getElementById('directIndication').innerHTML='<option value="">Seleccione paciente e indicación</option>'+a.map(x=>{const p=getPatient(x.patientId);return '<option value="'+x.id+'">'+p.id+' - '+p.name+' · '+x.type+' ('+x.state+')</option>'}).join('')}
 function startDirectActivity(){const i=getIndication(Number(document.getElementById('directIndication').value));const k=document.getElementById('directKind').value;if(!i){showMessage("Seleccione un paciente y su indicación.");return}currentPatientId=i.patientId;selectedIndicationId=i.id;selectedAdminId=i.id;renderContext();const profile=profileForTarget(i.target);currentProfile=profile;document.getElementById('perfil').value=profile;updateProfile();if(k==='evaluation')openEvaluation(0);else openEvolution('delivery',0)}
 
 /* ================================================================
@@ -3339,6 +3374,9 @@ function openExistingAgendaAppointment(appointmentId){
   }
 
   const indication=getIndication(appointment.indicationId);
+
+  // El estado de la actividad de agenda no determina por sí solo que la entrega AT esté cerrada.
+  // Se valida el estado real de la indicación antes de permitir o bloquear la entrega.
 
   if(!indication){
     showMessage(
@@ -3425,7 +3463,7 @@ function openEvaluation(appointmentId){
         (indication.agendaEvaluation
           ?'<div><label class="required">Clase de Ayuda Técnica</label>'+ 
              '<select id="evalAgendaType" onchange="changeAgendaEvaluationType()">'+
-               Object.keys(PRODUCT_CODES).map(function(type){return '<option value="'+escapeAttribute(type)+'"'+(type===indication.type?' selected':'')+'>'+escapeAttribute(type)+'</option>';}).join('')+
+               indicationTypeOptions(indication.type)+
              '</select></div>'
           :formRead("Ayuda Técnica indicada",indication.type))+
         '<div>'+
@@ -3674,6 +3712,12 @@ function saveEvaluation(appointmentId){
 ================================================================ */
 function openEvolution(kind,appointmentId){
   const indication=getSelectedIndication();
+  if(!indication){showMessage("Seleccione una indicación.");return;}
+  const appointment=DB.appointments.find(item=>item.id===Number(appointmentId));
+  if(kind==="delivery" && (indication.state==="Finalizada" || indication.finState==="ENTREGADO" || indication.inventoryDelivered)){
+    showMessage("La entrega ya fue realizada. No se permite repetirla ni cambiar a Chequeo conforme o FIN700 Entregado nuevamente.");
+    return;
+  }
   const patient=getPatient(indication.patientId);
 
   evolutionContext={
@@ -3990,6 +4034,11 @@ function savePrestations(){
   const indication=getSelectedIndication();
 
   if(prestationContext.kind==="delivery"){
+    const deliveryAppointment=DB.appointments.find(item=>item.id===Number(evolutionContext.appointmentId));
+    if(indication.state==="Finalizada" || indication.finState==="ENTREGADO" || indication.inventoryDelivered){
+      showMessage("La entrega ya fue realizada. No se registrarán nuevamente prestaciones ni se modificarán los estados.");
+      return;
+    }
     // El descuento se realiza al confirmar la entrega efectiva, para cualquier tipo de artículo.
     if(!indication.inventoryDelivered){
       const itemType=indication.type;
@@ -4001,7 +4050,7 @@ function savePrestations(){
       if(!indication.usedChairCode) DB.stockLocal[itemType]=Math.max(stockNow-1,0);
       indication.inventoryDelivered=true;
       indication.inventoryMovement={
-        productCode:indication.usedChairCode||PRODUCT_CODES[itemType]||itemType,
+        productCode:indication.usedChairCode||getProductCode(itemType)||itemType,
         item:itemType, quantity:1, date:today(), patientId:indication.patientId,
         indicationId:indication.id, warehouse:indication.usedChairCode?"BODEGA KINE/TO · ARTÍCULO REUTILIZADO":"BODEGA KINE/TO",
         movement:"SALIDA POR ENTREGA A PACIENTE"
@@ -5196,7 +5245,7 @@ function monthsSince(dateStr){
 function deliveredProductCode(indication){
   const full=indication.usedChairCode||indication.articleCode||indication.barcode||"";
   const movement=(indication.inventoryMovement&&indication.inventoryMovement.productCode)||"";
-  return String(full||movement||PRODUCT_CODES[indication.type]||"").split("-")[0];
+  return String(full||movement||getProductCode(indication.type)||"").split("-")[0];
 }
 
 function openReturn(){
@@ -5407,7 +5456,57 @@ function openReturnedAvailable(){
     '<button class="btn gray" onclick="closeMain()">Cerrar</button>', 'large');
 }
 
+function renderFin700Catalog(){
+  const body=document.getElementById("fin700CatalogBody");
+  if(!body)return;
+  const items=DB.fin700Catalog||[];
+  body.innerHTML=items.length?items.map(item=>
+    '<tr><td><b>'+escapeAttribute(item.code)+'</b></td><td>'+escapeAttribute(item.name)+'</td><td>'+escapeAttribute(item.category)+'</td><td>'+escapeAttribute(item.characteristics||"—")+'</td>'+
+    '<td><span class="badge '+(item.active?'green':'orange')+'">'+(item.active?'HABILITADO':'PENDIENTE')+'</span></td><td>'+
+    '<button class="mini '+(item.active?'red-outline':'blue')+'" onclick="toggleFin700Product(\''+escapeAttribute(item.code)+'\')">'+(item.active?'Deshabilitar':'Habilitar en sistema')+'</button></td></tr>'
+  ).join(""):'<tr><td colspan="6" class="empty">No hay productos sincronizados desde FIN700.</td></tr>';
+}
+function openFin700Product(){
+  const body='<div class="message info">Registre un artículo que ya existe en FIN700. Para una integración real, estos datos se recibirán desde el servicio del ERP.</div>'+
+    '<div class="grid g2"><div><label class="required">Código de producto FIN700</label><input id="finNewCode" placeholder="Ej. FIN-AT-9003"></div>'+
+    '<div><label class="required">Nombre / descripción del producto</label><input id="finNewName" placeholder="Nombre del artículo"></div>'+
+    '<div><label class="required">Tipo de ayuda técnica</label><select id="finNewCategory">'+options(Object.keys(PRODUCT_CODES), "Silla de ruedas")+'</select></div>'+
+    '<div><label>Características técnicas del producto</label><input id="finNewCharacteristics" placeholder="Talla, material, modelo, configuración..."></div></div>';
+  openMain("Registrar producto existente en FIN700",body,'<button class="btn gray" onclick="closeMain()">Cancelar</button> <button class="btn green" onclick="saveFin700Product()">Guardar producto</button>',"");
+}
+function saveFin700Product(){
+  const code=document.getElementById("finNewCode").value.trim();
+  const name=document.getElementById("finNewName").value.trim();
+  const category=document.getElementById("finNewCategory").value;
+  const characteristics=document.getElementById("finNewCharacteristics").value.trim();
+  if(!code||!name){showMessage("Ingrese el código FIN700 y el nombre del producto.");return;}
+  if((DB.fin700Catalog||[]).some(p=>p.code.toLowerCase()===code.toLowerCase()||p.name.toLowerCase()===name.toLowerCase())){showMessage("Ya existe un producto con ese código o nombre en el catálogo.");return;}
+  DB.fin700Catalog.push({code,name,category,characteristics,active:false,source:"FIN700",createdDate:today()});
+  DB.stockLocal[name]=DB.stockLocal[name]||0;DB.stockCentral[name]=DB.stockCentral[name]||0;
+  persist();closeMain();renderFin700Catalog();renderStock();
+  showMessage("Producto incorporado al catálogo FIN700 como PENDIENTE. Habilítelo para que los profesionales puedan seleccionarlo.");
+}
+function toggleFin700Product(code){
+  const item=(DB.fin700Catalog||[]).find(p=>p.code===code);if(!item)return;
+  item.active=!item.active;
+  if(item.active){DB.stockLocal[item.name]=DB.stockLocal[item.name]||0;DB.stockCentral[item.name]=DB.stockCentral[item.name]||0;}
+  persist();renderFin700Catalog();renderStock();
+  showMessage(item.active?"Producto habilitado: ya puede seleccionarse en nuevas indicaciones y evaluaciones.":"Producto deshabilitado: no estará disponible para nuevas indicaciones. Las indicaciones existentes se conservan.");
+}
+function simulateFin700CatalogSync(){
+  const incoming=[
+    {code:"FIN-AT-9001",name:"Silla de ruedas ultraliviana aluminio",category:"Silla de ruedas",characteristics:"Marco rígido; rueda PU; talla ajustable"},
+    {code:"FIN-AT-9002",name:"Andador posterior pediátrico regulable",category:"Carro andador",characteristics:"Talla pediátrica; altura regulable"},
+    {code:"FIN-AT-9003",name:"Bastón canadiense ergonómico",category:"Elem. apoyo para marcha",characteristics:"Empuñadura ergonómica; altura regulable"}
+  ];
+  DB.fin700Catalog=DB.fin700Catalog||[];
+  let added=0;
+  incoming.forEach(item=>{if(!DB.fin700Catalog.some(p=>p.code===item.code)){DB.fin700Catalog.push({...item,active:false,source:"FIN700",syncDate:today()});added++;}});
+  persist();renderFin700Catalog();showMessage("Sincronización FIN700 completada. "+added+" producto(s) nuevo(s) quedaron pendientes de habilitación; no se publicaron automáticamente a los profesionales.");
+}
+
 function renderArticles(){
+  renderFin700Catalog();
   const state=document.getElementById("articleState").value;
   const location=document.getElementById("articleLocation").value;
   const code=document.getElementById("articleCode")
@@ -5676,13 +5775,13 @@ function createOrder(type,indication){
     number:DB.nextOrder++,
     fin700:fin700,
     type:type,
-    product:PRODUCT_CODES[indication.type],
+    product:getProductCode(indication.type),
     item:indication.type,
     indicationId:indication.id,
     date:today(),
-    state:type==="CON"
-      ?"SOLICITUD DE CONSUMO"
-      :"Pendiente"
+    /* Toda solicitud saliente queda pendiente de respuesta del ERP.
+       El tipo CON conserva su clasificación en order.type y en la trazabilidad. */
+    state:"Pendiente"
   };
 
   DB.orders.push(order);
@@ -5701,7 +5800,7 @@ function createOrder(type,indication){
       numeroFin700:fin700,
       correlativoSIC:indication.id,
       articulo:indication.type,
-      codigoArticulo:PRODUCT_CODES[indication.type],
+      codigoArticulo:getProductCode(indication.type),
       cantidad:1,
       estadoSIC:indication.state
     }
@@ -5720,7 +5819,7 @@ function renderWaitList(){
     ?rows.map(indication=>{
       const order=DB.orders.find(item=>
         item.indicationId===indication.id&&
-        (item.type==="TRA"||item.type==="COM")
+        (item.type==="CON"||item.type==="TRA"||item.type==="COM")
       );
       const fin700=indication.fin700Order||(order&&order.fin700)||"—";
       return '<tr>'+
@@ -5731,7 +5830,7 @@ function renderWaitList(){
         '<td>'+(order?order.type:"—")+'</td>'+
         '<td>'+(indication.finState||"—")+'</td>'+
         '<td>'+
-          (order&&order.state==="Pendiente"
+          (order&&(order.state==="Pendiente"||order.state==="SOLICITUD DE CONSUMO")
             ?'<button class="mini blue" onclick="respondFin700('+order.number+')">'+
                'Abastecer desde FIN700'+
              '</button>'
@@ -5764,7 +5863,9 @@ function renderWsLog(){
 /* Simula el callback inbound del ERP FIN700 sobre la solicitud
    pendiente más antigua (abastecimiento real de la lista de espera). */
 function simulateInbound(){
-  const order=DB.orders.find(item=>item.state==="Pendiente");
+  const order=DB.orders.find(item=>
+    ["Pendiente","SOLICITUD DE CONSUMO","SOLICITUD DE TRASPASO","SOLICITUD DE COMPRA"].includes(item.state)
+  );
 
   if(!order){
     showMessage("No existen solicitudes pendientes en FIN700.");
@@ -5891,13 +5992,13 @@ function renderMassPurchaseRequests(){
 }
 
 function renderStock(){
-  const types=Object.keys(PRODUCT_CODES);
+  const types=Object.keys(PRODUCT_CODES).concat((DB.fin700Catalog||[]).filter(p=>p.active).map(p=>p.name));
 
   document.getElementById("stockBody").innerHTML=
     types.map(type=>
       '<tr>'+
         '<td>'+type+'</td>'+
-        '<td>'+PRODUCT_CODES[type]+'</td>'+
+        '<td>'+getProductCode(type)+'</td>'+
         '<td><b>'+(DB.stockLocal[type]||0)+'</b></td>'+
         '<td><b>'+(DB.stockCentral[type]||0)+'</b></td>'+
         '<td>'+
@@ -5920,7 +6021,7 @@ function renderStock(){
         '<td>'+formatDate(order.date)+'</td>'+
         '<td>'+order.state+'</td>'+
         '<td>'+
-          (order.state==="Pendiente"
+          (["Pendiente","SOLICITUD DE CONSUMO","SOLICITUD DE TRASPASO","SOLICITUD DE COMPRA"].includes(order.state)
             ?'<button class="mini blue" onclick="respondFin700('+order.number+')">'+
                'Recibir respuesta FIN700'+
              '</button>'
@@ -5965,7 +6066,8 @@ function releaseWaitList(item){
     if(available>0){
       available--;
       indication.stockReady=true;
-      indication.finState="SOLICITUD DE CONSUMO";
+      indication.state="Evaluada";
+      indication.finState="STOCK DISPONIBLE";
       released.push(indication);
     }
   });
@@ -5975,35 +6077,50 @@ function releaseWaitList(item){
 
 function respondFin700(number){
   const order=DB.orders.find(item=>item.number===Number(number));
+  if(!order){
+    showMessage("No se encontró la solicitud asociada a FIN700.");
+    return;
+  }
 
-  if(!order)return;
+  /* Respuesta idempotente: una solicitud recepcionada no puede sumar stock
+     por segunda vez, pero el resto de las solicitudes sigue disponible. */
+  if(order.state==="Recepcionado" || order.receivedAt){
+    showMessage("Esta solicitud FIN700 ya fue recepcionada. No se volverá a sumar stock.");
+    return;
+  }
+  if(!["Pendiente","SOLICITUD DE CONSUMO","SOLICITUD DE TRASPASO","SOLICITUD DE COMPRA"].includes(order.state)){
+    showMessage("La solicitud no está pendiente de respuesta de FIN700.");
+    return;
+  }
 
+  const qty=Math.max(1,Number(order.quantity)||1);
   order.state="Recepcionado";
+  order.receivedAt=new Date().toISOString();
   order.finResponse=
-    "Despacho FIN700 · 1 unidad · "+formatDate(today())+
+    "Despacho FIN700 · "+qty+" unidad(es) · "+formatDate(today())+
     (order.fin700?" · "+order.fin700:"");
 
   DB.stockLocal[order.item]=
-    (DB.stockLocal[order.item]||0)+1;
+    (Number(DB.stockLocal[order.item])||0)+qty;
 
   if(order.type==="TRA"){
     DB.stockCentral[order.item]=
-      Math.max((DB.stockCentral[order.item]||0)-1,0);
+      Math.max((Number(DB.stockCentral[order.item])||0)-qty,0);
   }
 
   const target=DB.indications.find(indication=>
-    indication.id===order.indicationId&&
-    indication.state==="Lista de Espera"
+    indication.id===order.indicationId
   );
-
-  if(target&&!target.stockReady&&(DB.stockLocal[order.item]||0)>0){
+  if(target && target.state==="Lista de Espera"){
     target.stockReady=true;
-    target.finState="SOLICITUD DE CONSUMO";
+    target.state="Evaluada";
+    target.finState="STOCK DISPONIBLE";
   }
 
   const released=releaseWaitList(order.item);
-
-  if(target&&target.stockReady)released.unshift(target);
+  if(target && target.stockReady && !released.some(ind=>ind.id===target.id)){
+    released.unshift(target);
+  }
 
   logWs(
     "INBOUND_CALLBACK",
@@ -6012,25 +6129,26 @@ function respondFin700(number){
       event:"STOCK_DESPACHADO_POR_ERP",
       numeroFin700:order.fin700||null,
       correlativoSIC:order.indicationId,
+      tipoSolicitud:order.type,
       articulo:order.item,
-      cantidad:1,
+      cantidad:qty,
       stockLocal:DB.stockLocal[order.item],
       indicacionesLiberadas:released.map(indication=>indication.id)
     }
   );
 
   persist();
-
   renderStock();
   renderAdmin();
+  renderIndications();
+  renderAgenda();
 
   showMessage(
-    "FIN700 respondió la solicitud "+(order.fin700||("N° "+order.number))+
-    " ("+order.type+"). Artículo recepcionado en stock local. "+
+    "Respuesta FIN700 procesada para la solicitud "+(order.fin700||("N° "+order.number))+
+    " ("+order.type+"). Se recepcionaron "+qty+" unidad(es) en stock local. "+
     (released.length
-      ?"Indicaciones liberadas de <b>Lista de Espera</b>: "+
-        released.map(indication=>indication.id).join(", ")+"."
-      :"Sin indicaciones pendientes por liberar.")
+      ?"Indicaciones habilitadas para continuar el flujo: "+released.map(indication=>indication.id).join(", ")+"."
+      :"El stock quedó actualizado; no había indicaciones pendientes por liberar.")
   );
 }
 
